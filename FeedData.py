@@ -3,17 +3,10 @@ import mediapipe as mp
 import numpy as np
 import pandas as pd
 import time
-import webbrowser
-import PIL.ImageGrab
-import keyboard
-import pyautogui
-import win32con
-import win32api
-
 
 
 class HandDetector:
-    def __init__(self, actions):
+    def __init__(self):
         print("Initializing HandDetector...")
         self.cap = cv2.VideoCapture('TestVideo1.mp4')
         if not self.cap.isOpened():
@@ -23,10 +16,8 @@ class HandDetector:
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands()
         self.mpDraw = mp.solutions.drawing_utils
-        self.actions = actions
         self.arr = [0,0,0,0,0]
         self.test_flag = False
-        self.w, self.h = pyautogui.size()
         self.scroll = False
 
         self.slow = 0
@@ -42,9 +33,6 @@ class HandDetector:
             'ring_finger_mcp', 'ring_finger_pip', 'ring_finger_dip', 'ring_finger_tip',
             'pinky_mcp', 'pinky_pip', 'pinky_dip', 'pinky_tip',
         ]
-
-        self.last_action = 0
-        self.cooldown = 2
 
     def get_frame_and_landmarks(self):
         success, img = self.cap.read()
@@ -67,15 +55,6 @@ class HandDetector:
     
     def release(self):
         self.cap.release()
-
-    def recognize_gesture(self, fingos):
-        actionTime = time.time()
-        if (actionTime - self.last_action > self.cooldown):
-            action = gesture_actions.get(fingos)
-            if action:
-                action()
-                self.last_action = actionTime
-
 
     def to_data_frame(self, landmark):
         d = np.zeros((self.NUM_POINTS, 3))
@@ -131,74 +110,12 @@ class HandDetector:
         self.arr[1] += ret[1]
         self.arr[2] += ret[2]
         self.arr[3] += ret[3]
-        self.arr[4] += ret[4]
-
-        if(ret[0] and ret[1] and ret[2] and ret[3] and ret[4]):
-            self.test_flag = True
-
-        if not (ret[0] or ret[1] or ret[2] or ret[3] or ret[4]):
-            self.test_flag = False
-            self.scroll = False
-
-        if self.test_flag:
-            self.slow += 1
-            if self.slow == 2:
-                self.slow = 0
-                index_tip = df.loc['index_finger_mcp']
-                x = int((self.w * 2 * (1 - index_tip['x']))) % self.w
-                y = int((self.h * 1.1 * index_tip['y'])) % self.h
-
-                win32api.SetCursorPos((x, y))
-                
-
-            if not (ret[1] and ret[2] and ret[3]):
-                self.scroll = True
-
-
-            if not ret[1]:
-                pyautogui.click()
-                
-
-                
-                
-
-        
+        self.arr[4] += ret[4]       
     
         return tuple(ret)
 
-def launch_chrome():
-    webbrowser.open('https://www.google.com')
 
-
-def take_screenshot():
-    im = PIL.ImageGrab.grab()
-    im.show()
-
-def alt_f4():
-    keyboard.press('alt')
-    keyboard.press('f4')
-    keyboard.release('f4')
-    keyboard.release('alt')
-
-def close_window():
-    keyboard.press('Ctrl')
-    keyboard.press('w')
-    keyboard.release('Ctrl')
-    keyboard.release('w')
-
-def set_flag(self):
-    self.flag = True
-
-
-gesture_actions = {
-    (False, True, True, False, False): launch_chrome,
-    (False, False, False, False, True): take_screenshot,
-    (False, True, False, False, True): alt_f4,
-    (False, True, True, True, False): close_window,
-
-    }
-
-hand_detector = HandDetector(gesture_actions)
+hand_detector = HandDetector()
 prevTime = 0
 
 while True:
@@ -212,7 +129,6 @@ while True:
         for handLms in landmarks:
             temp = hand_detector.to_data_frame(handLms.landmark)
             fingos = hand_detector.fings_up(temp)
-            hand_detector.recognize_gesture(fingos)
 
             h, w, c = img.shape
             a = temp.loc['pinky_mcp']
