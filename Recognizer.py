@@ -155,6 +155,7 @@ class Machete:
 
         T = template.T
         TN = abs(T)
+        t = 0
 
         for col in range(1, TN):
             best = currRow[col - 1]
