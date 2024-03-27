@@ -1,8 +1,6 @@
-import cv2
 import mediapipe as mp
 import numpy as np
 import pandas as pd
-import time
 import math
 
 class Machete:
@@ -22,7 +20,7 @@ class Machete:
         self.template.s2 = 0
         self.template.s3 = 0
 
-        pts = self.angular_DP(samplePts, epsilon)
+        pts = self.angular_dp(samplePts, epsilon)
         N = len(pts)
 
         for i, elem, in enumerate(N):
@@ -42,8 +40,8 @@ class Machete:
                 self.template.T.append(vec / np.linalg.norm(vec))
         
         f2l = pts[N - 1] - pts[0]
-        diagLength = Diagonal_Length(pts)
-        length = path_Length(pts)
+        diagLength = diagonal_length(pts)
+        length = path_length(pts)
 
         self.template.f2l = f2l / np.linalg.norm(f2l)
         self.template.openness = np.linalg.norm(f2l) / length
@@ -61,12 +59,12 @@ class Machete:
         N = abs(trajectory)
         newPts.append(trajectory[0])
         
-        self.Angular_DP_Recursive(trajectory, 0, N - 1, newPts, epsilon)
+        self.angular_dp_recursive(trajectory, 0, N - 1, newPts, epsilon)
         newPts.append(trajectory[N - 1])
 
         return newPts
     
-    def Angular_DP_Recursive(self, trajectory, start, end, newPts, epsilon):
+    def angular_dp_recursive(self, trajectory, start, end, newPts, epsilon):
         
         if (start + 1 >= end):
             return
@@ -103,11 +101,11 @@ class Machete:
         if (selected == -1):
             return
         
-        self.Angular_DP_Recursive(trajectory, start, selected, newPts, epsilon)
+        self.angular_dp_recursive(trajectory, start, selected, newPts, epsilon)
         newPts.append(trajectory[selected])
-        self.Angular_DP_Recursive(trajectory, selected, end, newPts, epsilon)
+        self.angular_dp_recursive(trajectory, selected, end, newPts, epsilon)
 
-    def calculate_correction_factors(template, cdpElem):
+    def calculate_correction_factors(self, template, cdpElem):
 
         f2l = template.buffer[cdpElem.endFrame] - template.buffer[cdpElem.startFrame]
         f2lLength = np.linalg.norm(f2l)
@@ -120,4 +118,56 @@ class Machete:
         cff2l = min(2, cff2l)
 
         return (cfopenness * cff2l)
-        return (cfopenness * cff2l)
+    
+    def consume_input (self, template, x, frameNumber):
+
+        template.buffer.append(x)
+
+        length = np.linalg.norm(x - template.prev)
+        if (length < 0):
+            return
+        
+        x = (x - template.prev) / length
+        template.prev = x
+
+        prevRow = template.row[template.currRowIdx]
+        template.currRowIdx = (template.currRowIdx + 1) % 2
+        currRow = template.row[template.currRowIdx]
+        currRow[0].startFrame = frameNumber
+
+        T = template.T
+        TN = abs(T)
+
+        for col in range(1, TN):
+            best = currRow[col - 1]
+            path2 = prevRow[col - 1]
+            path3 = prevRow[col]
+
+            if (path2.score <= best.score):
+                best = path2
+            if (path3.score <= best.score):
+                best = path3
+
+            localCost = length * ((1 - np.dot(x, t[col - 1]))**2)
+            currRow[col].startFrame = best.startFrame
+            currRow[col].endFrame = frameNumber
+            currRow[col].cumulativeCost = best.cumulativeCost + localCost
+            currRow[col].cumulativeLength = best.cumulativeLength + length
+            currRow[col].score = currRow[col].cumulativeCost / currRow[col].cumulativeLength
+
+        cf = self.calculate_correction_factors(template, currRow[TN])
+        correctedScore = cf * currRow[TN].score
+
+        template.doCheck = False
+        template.total = template.total + currRow[TN].score
+        template.n = template.n + 1
+        template.s1 = template.s2
+        template.s3 = correctedScore
+
+        if (template.s3 < template.s2):
+            template.startFrame = currRow[TN].startFrame
+            template.endFrame = currRow[TN].endFrame
+            return
+        
+        mu = template.total / (2 * template.n)
+        template.doCheck = (template.s2 < mu and template.s2 < template.s1 and template.s2 < template.s3)
