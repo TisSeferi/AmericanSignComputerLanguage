@@ -79,6 +79,11 @@ def Process_Video(videoName):
     print("Elapsed Time\t" + str(t))
     return data
 
-    
+# Default test video
+# Process_Video('TestVideos\TestVideo1.mp4')
 
-Process_Video('TestVideos\TestVideo2.mp4')
+# Long video processing test
+# Process_Video('TestVideos\TestVideo2.mp4')
+
+# Web processing test
+# Process_Video('https://www.pexels.com/download/video/3959694/')
