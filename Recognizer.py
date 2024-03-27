@@ -41,8 +41,8 @@ class Machete:
                 self.template.T.append(vec / np.linalg.norm(vec))
         
         f2l = pts[N - 1] - pts[0]
-        diagLength = diagonal_length(pts)
-        length = path_length(pts)
+        diagLength = self.diagonal_length(pts)
+        length = self.path_length(pts)
 
         self.template.f2l = f2l / np.linalg.norm(f2l)
         self.template.openness = np.linalg.norm(f2l) / length
@@ -51,9 +51,26 @@ class Machete:
 
         return self.template
     
+    def diagonal_length(pts):
+        
+        pts_array = np.array(pts)
+        min_vals = np.min(pts_array, axis=0)
+        max_vals = np.max(pts_array, axis=0)
+        differences = max_vals - min_vals
+        
+        return np.linalg.norm(differences)
+    
+    def path_length(pts):
+       
+        pts_array = np.array(pts)
+        differences = np.diff(pts_array, axis=0)
+        segment_lengths = np.linalg.norm(differences, axis=1)
+        
+        return np.sum(segment_lengths)
+
     ##john smells
     def angular_dp(self, trajectory, epsilon):
-        diagLength = diagonal_length(trajectory)
+        diagLength = self.diagonal_length(trajectory)
         epsilon = diagLength * epsilon
 
         newPts = {}
