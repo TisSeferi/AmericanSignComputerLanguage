@@ -140,35 +140,7 @@ while True:
             start_y = int(ref['y'] * h)
 
             end_x = start_x + 170
-            dy = 30
-            if fingos[2] and not(fingos[1] or fingos[3] or fingos[4]) :
-                tip = (int(temp.loc['middle_finger_tip']['x'] * w), int(temp.loc['middle_finger_tip']['y'] * h))
-                dip = (int(temp.loc['middle_finger_dip']['x'] * w), int(temp.loc['middle_finger_dip']['y'] * h))
-                pip = (int(temp.loc['middle_finger_pip']['x'] * w), int(temp.loc['middle_finger_pip']['y'] * h))
-                mcp = (int(temp.loc['middle_finger_mcp']['x'] * w), int(temp.loc['middle_finger_mcp']['y'] * h))
-
-                #cv2.line(img, tip, dip, (0, 0, 0), 25)
-                #cv2.line(img, dip, pip, (0, 0, 0), 25)
-                #cv2.line(img, pip, mcp, (0, 0, 0), 25)
-
-                text ='CENSORED'
-                
-                mdx = 50
-                mdy = 20
-                
-                x, y = pip
-                p0 = (x - mdx, y)
-                p1 = (x + mdx , y + mdy)
-                p2 = (x - mdx, y - mdy)
-
-                cv2.rectangle(img, p1, p2, (0, 0, 0), -1)
-                cv2.putText(img, text, p0, cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
-                
-           # cv2.rectangle(img, (start_x - 20, start_y - dy), (end_x, start_y + 5 * dy), (0, 0, 0), -1)
-           # for ind, val in enumerate(['thumb', 'index_finger', 'middle_finger', 'ring_finger', 'pinky']):
-           #     text = f'{val}: {"Up" if fingos[ind] else "Down"}'
-           #     cv2.putText(img, text, (start_x, start_y + ind * dy), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
-
+            dy = 30              
 
     currTime = time.time()
     fps = 1 / (currTime - prevTime)
