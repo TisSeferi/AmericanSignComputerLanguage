@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import pandas as pd
-
+USE_DATAFRAMES = False
 NUM_POINTS = 21
 HAND_REF = [
         'wrist',
@@ -17,7 +17,6 @@ def Euclidean_Dist(self, df1, df2, cols=['x', 'y']):
     return np.linalg.norm(df1[cols].values - df2[cols].values, axis=1)
 
 def Process_Video(videoName):
-    print("Initializing HandDetector...")
     cap = cv2.VideoCapture(videoName)
     if not cap.isOpened():
         print("Error: Failed to open File.")
@@ -26,10 +25,10 @@ def Process_Video(videoName):
     print("HandDetector initialized successfully.")
 
     hands = mp.solutions.hands.Hands()
-    success, img = cap.read()
-
+    
     #The list for returning the dataframes
     data =[]
+    success, img = cap.read()
     while(success): 
         if not success:
             print("Error in reading!")
@@ -55,14 +54,23 @@ def Process_Video(videoName):
                         d[id][0] = lm.x
                         d[id][1] = lm.y
 
-                    df = pd.DataFrame(data=d, columns=['x', 'y'], index=HAND_REF)
-                    data.append(df)
+                    if(USE_DATAFRAMES):
+                        d = pd.DataFrame(data=d, columns=['x', 'y'], index=HAND_REF)
+
+                    data.append(d)
                     
 
         success, img = cap.read()
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+    if(USE_DATAFRAMES):
+        data = pd.concat(data)
+        data.to_csv('out.csv')
+    else:        
+        np.save('out', np.vstack(data))
     return data
 
 print(Process_Video('TestVideos/TestVideo1.mp4'))
