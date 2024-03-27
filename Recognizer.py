@@ -52,8 +52,9 @@ class Machete:
 
         return self.template
     
-    def angular_DP(self, trajectory, epsilon):
-        diagLength = Diagonal_Length(trajectory)
+    ##john smells
+    def angular_dp(self, trajectory, epsilon):
+        diagLength = diagonal_length(trajectory)
         epsilon = diagLength * epsilon
 
         newPts = {}
@@ -118,4 +119,5 @@ class Machete:
         cff2l = 1 + 1/2 * template.wf2l * (1 - np.dot(f2l/f2lLength, template.f2l))
         cff2l = min(2, cff2l)
 
+        return (cfopenness * cff2l)
         return (cfopenness * cff2l)
