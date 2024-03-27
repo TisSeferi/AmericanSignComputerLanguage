@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import pandas as pd
+import time
 USE_DATAFRAMES = False
 NUM_POINTS = 21
 HAND_REF = [
@@ -17,7 +18,10 @@ def Euclidean_Dist(self, df1, df2, cols=['x', 'y']):
     return np.linalg.norm(df1[cols].values - df2[cols].values, axis=1)
 
 def Process_Video(videoName):
+    t = time.time()
     cap = cv2.VideoCapture(videoName)
+    duration = cap.get(cv2.CAP_PROP_POS_MSEC)
+
     if not cap.isOpened():
         print("Error: Failed to open File.")
         exit()
@@ -71,6 +75,10 @@ def Process_Video(videoName):
         data.to_csv('out.csv')
     else:        
         np.save('out', np.vstack(data))
+    t = time.time() - t
+    print("Elapsed Time\t" + str(t))
     return data
 
-print(Process_Video('TestVideos/TestVideo1.mp4'))
+    
+
+Process_Video('TestVideos\TestVideo2.mp4')
