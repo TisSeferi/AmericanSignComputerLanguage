@@ -64,3 +64,5 @@ def Process_Video(videoName):
     cap.release()
     cv2.destroyAllWindows()
     return data
+
+print(Process_Video('TestVideos/TestVideo1.mp4'))
