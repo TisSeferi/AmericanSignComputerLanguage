@@ -3,6 +3,7 @@ import mediapipe as mp
 import numpy as np
 import pandas as pd
 import time
+import os
 USE_DATAFRAMES = False
 NUM_POINTS = 21
 
@@ -28,13 +29,16 @@ def Euclidean_Dist(self, df1, df2, cols=['x', 'y']):
 def Process_Video(videoName):
     t = time.time()
     cap = cv2.VideoCapture(videoName)
+    name = videoName.split('.')[0] + '-' + videoName.split('.')[1]
+    name = name.split('/')[1]
+
     duration = cap.get(cv2.CAP_PROP_POS_MSEC)
 
     if not cap.isOpened():
         print("Error: Failed to open File.")
         exit()
 
-    print("HandDetector initialized successfully.")
+    #print("HandDetector initialized successfully.")
 
     hands = mp.solutions.hands.Hands()
     
@@ -82,19 +86,10 @@ def Process_Video(videoName):
         data = pd.concat(data)
         data.to_csv('out.csv')
     else:        
-        np.save('out', np.vstack(data))
+        np.save("templates/" + name, np.vstack(data))
     t = time.time() - t
-    print("Elapsed Time\t" + str(t))
+    print('Elapsed Time: ' + "%.2f" % t)
     return data
-
-# Default test video
-#Process_Video('TestVideos\TestVideo1.mp4')
-
-# Long video processing test
-# Process_Video('TestVideos\TestVideo2.mp4')
-
-# Web processing test
-# Process_Video('https://www.pexels.com/download/video/3959694/')
 
 def Live_Process():
     cap = cv2.VideoCapture(0)
@@ -146,4 +141,17 @@ def Live_Process():
     cap.release()
     cv2.destroyAllWindows()
 
-Live_Process()
+# Web processing test
+# Process_Video('https://www.pexels.com/download/video/3959694/')
+
+# Live_Process()
+print('Running Recognition')
+
+t = time.time()
+
+for str in os.listdir('TestVideos'):
+    str = 'TestVideos/' + str
+    Process_Video(str)
+
+t = time.time() - t
+print('Elapsed Time: ' + "%.2f" % t)
