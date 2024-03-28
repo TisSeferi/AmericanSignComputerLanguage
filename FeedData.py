@@ -103,7 +103,7 @@ def Live_Process():
     hands = mp.solutions.hands.Hands()
     
     #The list for returning the dataframes
-    data = np.array(BUFFER_LENGTH, 2)
+    data = np.zeros((BUFFER_LENGTH, 2))
     frame = 0
 
     success, img = cap.read()
@@ -128,6 +128,7 @@ def Live_Process():
                     #Convert landmarks to dataframe
                     points = handLms.landmark
                     for id, lm in enumerate(points):
+                        print(frame * NUM_POINTS + id)
                         data[frame * NUM_POINTS + id][0] = lm.x
                         data[frame * NUM_POINTS + id][1] = lm.y                   
         else:
@@ -135,8 +136,10 @@ def Live_Process():
                 data[frame * NUM_POINTS + id][0] = -1
                 data[frame * NUM_POINTS + id][1] = -1
 
-        frame = frame + 1 % BUFFER_FRAMES
+        frame = (frame + 1) % BUFFER_FRAMES
+        print(data)
         success, img = cap.read()
+
 
     cap.release()
     cv2.destroyAllWindows()
@@ -144,14 +147,14 @@ def Live_Process():
 # Web processing test
 # Process_Video('https://www.pexels.com/download/video/3959694/')
 
-# Live_Process()
-print('Running Recognition')
-
-t = time.time()
-
-for str in os.listdir('TestVideos'):
-    str = 'TestVideos/' + str
-    Process_Video(str)
-
-t = time.time() - t
-print('Elapsed Time: ' + "%.2f" % t)
+Live_Process()
+# print('Running Recognition')
+# 
+# t = time.time()
+# 
+# for str in os.listdir('TestVideos'):
+#     str = 'TestVideos/' + str
+#     Process_Video(str)
+# 
+# t = time.time() - t
+# print('Elapsed Time: ' + "%.2f" % t)
