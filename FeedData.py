@@ -88,7 +88,7 @@ def Process_Video(videoName):
     else:        
         np.save("templates/" + name, np.vstack(data))
     t = time.time() - t
-    print('Elapsed Time: ' + "%.2f" % t)
+    #print('Elapsed Time: ' + "%.2f" % t)
     return data
 
 def Live_Process():
