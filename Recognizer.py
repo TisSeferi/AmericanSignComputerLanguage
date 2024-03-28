@@ -190,3 +190,10 @@ class Machete:
         
         mu = template.total / (2 * template.n)
         template.doCheck = (template.s2 < mu and template.s2 < template.s1 and template.s2 < template.s3)
+
+class Jackknife:
+    def __init__(self, blades, templates):
+        self.blades = blades
+        self.template = templates
+
+        

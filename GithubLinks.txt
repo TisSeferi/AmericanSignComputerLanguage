@@ -1,0 +1,7 @@
+
+#Jackknife repo
+https://github.com/ISUE/Jackknife/blob/master/js/jackknife/jackknife_recognizer.js
+
+
+#Machete repo
+https://github.com/ISUE/Machete
