@@ -196,4 +196,17 @@ class Jackknife:
         self.blades = blades
         self.template = templates
 
-        
+
+class JackknifeTemplate:
+    def __init__(self, blades, sample):
+        self.sample = sample
+        self.gesture_id = sample.gesture_id
+
+class Distributions:
+    def __init__(self, max_score, bin_cnt):
+        self.neg = Vector(0, bin_cnt)
+        self.pos = Vector(0, bin_cnt)
+        self.max_score = max_score
+
+#class Vector:
+#    def __init__(self, x, size=None):
