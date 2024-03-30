@@ -128,7 +128,6 @@ def Live_Process():
                     #Convert landmarks to dataframe
                     points = handLms.landmark
                     for id, lm in enumerate(points):
-                        print(frame * NUM_POINTS + id)
                         data[frame * NUM_POINTS + id][0] = lm.x
                         data[frame * NUM_POINTS + id][1] = lm.y                   
         else:
