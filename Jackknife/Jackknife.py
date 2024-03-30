@@ -1,4 +1,4 @@
-import Jackknife.Vector as Vector
+import Vector as Vector
 
 #Add "JackknifeTemplate" object with parameters "blades" and "sample"
 #Add "JackknifeFeatures" with parameters "blades" and "trajectory"

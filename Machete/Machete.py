@@ -2,7 +2,7 @@ import mediapipe as mp
 import numpy as np
 import pandas as pd
 import math
-import ClassFiles.FeedData as FeedData
+import FeedData as FeedData
 
 class Machete:
     def __init__(self, theta, epsilon):
