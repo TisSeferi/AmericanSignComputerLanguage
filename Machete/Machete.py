@@ -2,7 +2,7 @@ import mediapipe as mp
 import numpy as np
 import pandas as pd
 import math
-import FeedData
+import ClassFiles.FeedData as FeedData
 
 class Machete:
     def __init__(self, theta, epsilon):
@@ -190,23 +190,3 @@ class Machete:
         
         mu = template.total / (2 * template.n)
         template.doCheck = (template.s2 < mu and template.s2 < template.s1 and template.s2 < template.s3)
-
-class Jackknife:
-    def __init__(self, blades, templates):
-        self.blades = blades
-        self.template = templates
-
-
-class JackknifeTemplate:
-    def __init__(self, blades, sample):
-        self.sample = sample
-        self.gesture_id = sample.gesture_id
-
-class Distributions:
-    def __init__(self, max_score, bin_cnt):
-        self.neg = Vector(0, bin_cnt)
-        self.pos = Vector(0, bin_cnt)
-        self.max_score = max_score
-
-#class Vector:
-#    def __init__(self, x, size=None):
