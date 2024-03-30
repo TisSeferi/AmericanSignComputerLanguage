@@ -13,6 +13,13 @@ BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
 BUFFER_LENGTH = BUFFER_FRAMES * NUM_POINTS
 
+RAW_VIDS_FOLDER = 'TestVideos'
+TEMPLATES = 'templates'
+
+
+
+
+
 
 HAND_REF = [
         'wrist',
@@ -86,7 +93,7 @@ def Process_Video(videoName):
         data = pd.concat(data)
         data.to_csv('out.csv')
     else:        
-        np.save("templates/" + name, np.vstack(data))
+        np.save(TEMPLATES + name, np.vstack(data))
     t = time.time() - t
     #print('Elapsed Time: ' + "%.2f" % t)
     return data
@@ -145,6 +152,20 @@ def Live_Process():
 
 # Web processing test
 # Process_Video('https://www.pexels.com/download/video/3959694/')
+    
+def Extract_From_Vids():
+    for str in os.listdir(RAW_VIDS_FOLDER):
+        str = RAW_VIDS_FOLDER + str
+        Process_Video(str)
+        #TODO Move np.save here
+
+
+def Assemble_Templates():
+    list = []
+    for str in os.listdir(TEMPLATES):
+        list.append(np.load(TEMPLATES + '/' + str))
+
+    return list
 
 Live_Process()
 # print('Running Recognition')
