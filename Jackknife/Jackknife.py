@@ -14,7 +14,8 @@ class Jackknife:
     def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
         self.blades = blades
         self.templates = templates
-        self.template_cnt = self.templates.len()
+    
+
 
     def classify(self, trajectory):
         features = JackknifeFeatures(self.blades, trajectory)
@@ -47,7 +48,7 @@ class JackknifeFeatures:
         self.vecs = []
 
         m = len(points[0].data)
-        resampled_pts = resample(points, self.pts, blades.resample_cnt)
+        resampled_pts = self.resample(points, self.pts, blades.resample_cnt)
 
         minimum = Vector(self.pts[0].data)
         maximum = Vector(self.pts[0].data)
@@ -73,9 +74,9 @@ class JackknifeFeatures:
                     assert(0)
 
         if (blades.z_normalize):
-            z_normalize(self.vecs)
+            self.z_normalize(self.vecs)
 
-        self.abs(normalize())
+        self.abs(self.normalize())
         self.bb = (maximum.subtract(minimum)).normalize()      
 
 
@@ -129,5 +130,4 @@ class Distributions:
         ret *= self.max_score / self.neg.len
         
         return ret
-    
     
