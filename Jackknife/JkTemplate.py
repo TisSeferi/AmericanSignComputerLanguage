@@ -41,3 +41,8 @@ class JkTemplate:
                         minimum.data[kk],
                         vec.data[kk]
                     )
+            self.upper.append(maximum)
+            self.lower.append(minimum)
+
+    def compare_templates(t1, t2):
+        return t1.lb < t2.lb
