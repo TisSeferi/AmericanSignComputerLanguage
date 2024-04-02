@@ -64,6 +64,7 @@ def resample(points, n, variance=0):
     
     return ret
 
+##TODO Write GPSR
 
 # x = resample(points = np.load('templates/down-1.npy'), n = 6, variance=.1)
 # print(x)
