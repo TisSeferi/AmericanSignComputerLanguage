@@ -13,47 +13,43 @@ class Jackknife:
     def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
         self.blades = blades
         self.templates = templates
+        self.template_cnt = self.templates.len()
 
     def classify(self, trajectory):
         features = JackknifeFeatures(self.blades, trajectory)
-        template_cnt = self.templates.len()
+        cf = 1.0
 
         for tt, template, in enumerate(self.templates):
-            cf = 1.0
+            cf *= 1.0
 
-            # Line 72
+            if self.blades.cf_abs_distance:
+                cf *= 1.0 / max(
+                    0.01, features.abs.dot(template.features.abs)
+                )
 
+            if self.blades.cf_bb_widths:
+                cf *= 1.0 / max(
+                    0.01, features.bb.dot(template.features.bb)
+                )
 
-class JackknifeTemplate:
-    def __init__(self, blades, sample):
-        self.sample = sample
-        self.gesture_id = sample.gesture_id
-        self.lower = []
-        self.upper = []
+            if self.blades.lower_bound:
+                template.lb = cf * self.lower_bound(
+                    features.vecs, template
+                )
 
-        self.lb - 1.0
-        self.cf = 1.0
-
-        self.rejection_threshold = np.inf()
-
-        self.features = JackknifeFeatures(blades, self.trajectory)
+            #TODO sort templates ???
 
 
 class JackknifeFeatures:
     def __init__(self, blades=JkBlades, points=None):
-        self.pts = blades
+        self.blades = blades
         self.pts = points
-        self.pts = resample(self.pts, blades.resample_cnt)
+        self.len = len(points)
 
         self.vecs = []
         self.abs = np.zeros(points.shape[1])
-        minimum = Vector(self.pts[0])
-        maximum = Vector(self.pts[0])
 
-        for i in range(1, len(self.pts)):
-            vec = self.pts[i] - self.pts[i - 1]
 
-            self.abs += np.a
 
 
 class Distributions:
