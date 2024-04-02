@@ -1,5 +1,4 @@
 import numpy as np
-import scipy
 
 def z_normalize(points):
     mean = np.mean(points)
@@ -10,8 +9,6 @@ def z_normalize(points):
 
 def path_length(points):
     return(np.linalg.norm(points))
-
-
 
 
 def resample(points, n, variance=0):
@@ -68,5 +65,5 @@ def resample(points, n, variance=0):
     return ret
 
 
-x = resample(points = np.load('templates/down-1.npy'), n = 6, variance=.1)
-print(x)
+# x = resample(points = np.load('templates/down-1.npy'), n = 6, variance=.1)
+# print(x)

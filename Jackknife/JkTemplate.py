@@ -1,5 +1,4 @@
 import numpy as np
-import pyts
 import JkBlades
 import Jackknife as jk
 import Vector
