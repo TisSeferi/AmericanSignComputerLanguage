@@ -1,5 +1,8 @@
 import numpy as np
 
+def normalize(points):
+    return (points-np.min(points))/(np.max(points)-np.min(points))
+
 def z_normalize(points):
     mean = np.mean(points)
     std_val = np.std(points)
@@ -24,7 +27,6 @@ def resample(points, n, variance=0):
         list of tuples or NumPy arrays: Resampled points.
     """
     path_distance = np.linalg.norm(np.diff(points, axis=0), axis=1).sum()
-    print(n)
     intervals = np.zeros(n-1)
 
     # Uniform resampling

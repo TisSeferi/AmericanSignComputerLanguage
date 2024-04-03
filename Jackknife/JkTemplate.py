@@ -1,14 +1,14 @@
 import numpy as np
 from JkBlades import JkBlades
-import Jackknife as jk
+from JkFeatures import JkFeatures
 import Vector
 
 
 class JkTemplate:
-    def __init__(self, blades = JkBlades(), sample=None):
+    def __init__(self, blades=JkBlades(), sample=None):
         self.sample = sample
         self.gesture_id = None
-        self.features = jk.JackknifeFeatures(blades, sample)
+        self.features = JkFeatures(blades, sample)
 
         # TODO Identify gesture IDs
 
@@ -21,24 +21,24 @@ class JkTemplate:
         self.rejection_threshold = np.inf
 
         vecs = self.features.vecs
-        component_cnt = vecs[0].data.length
+        component_cnt = len(vecs[0])
 
-        for ii, vec in enumerate(vecs.data):
-            maximum = Vector(np.inf, component_cnt)
-            minimum = Vector(-1 * np.inf, component_cnt)
+        for ii, vec in enumerate(vecs):
+            maximum = np.full((component_cnt, 2), np.inf)
+            minimum = np.full((component_cnt, 2), -1 * np.inf)
 
             start = max(0, ii - int(blades.radius))
-            end = min(ii + blades.radius + 1, vecs.length)
+            end = min(ii + blades.radius + 1, len(vecs))
 
             for jj in range(start, end):
                 for kk in range(component_cnt):
-                    maximum.data[kk] = max(
-                        maximum.data[kk],
-                        vec.data[kk])
+                    maximum[kk] = np.maximum(
+                        maximum[kk],
+                        vec[kk])
 
-                    minimum.data[kk] = min(
-                        minimum.data[kk],
-                        vec.data[kk]
+                    minimum[kk] = np.minimum(
+                        minimum[kk],
+                        vec[kk]
                     )
             self.upper.append(maximum)
             self.lower.append(minimum)

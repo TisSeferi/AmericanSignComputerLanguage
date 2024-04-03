@@ -3,7 +3,8 @@ import numpy as np
 import math
 from JkBlades import JkBlades
 from Vector import Vector
-import JkTemplate
+from JkTemplate import JkTemplate
+from JkFeatures import JkFeatures
 import mathematics
 
 
@@ -15,34 +16,41 @@ import mathematics
 class Jackknife:
     def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
         self.blades = blades
-        self.templates = templates
+        self.templates = []
+        for t in templates:
+            self.add_template(t)
     
     def add_template(self, sample):
         self.templates.append(JkTemplate(self.blades, sample))
 
     def classify(self, trajectory):
 
-        features = JackknifeFeatures(self.blades, trajectory)
-        template_cnt = self.templates.len
+        features = JkFeatures(self.blades, trajectory)
+        template_cnt = int(len(self.templates))
 
-        for tt, in range(0, template_cnt):
+        for t in self.templates:
             cf = 1.0
 
-            if (self.blades.cf_abs_distance > 0):
+            if self.blades.cf_abs_distance:
+                print("\n\n\n\n\n\n\n")
+                print(features.abs)
+                print("------")
+                print(t.features.abs)
+                print("\n\n\n\n\n\n\n")
                 cf *= 1.0 / max(
-                    0.01, features.abs.dot(self.template.features.abs)
+                    0.01, np.dot(features.abs, t.features.abs)
                 )
 
-            if (self.blades.cf_bb_widths > 0):
+            if self.blades.cf_bb_widths:
                 cf *= 1.0 / max(
-                    0.01, features.bb.dot(self.template.features.bb)
+                    0.01, np.dot(features.bb, t.features.bb)
                 )
             
-            self.templates[tt].cf = cf
+            t.cf = cf
 
-            if (self.blades.lower_bound > 0):
-                self.template.lb = cf * self.lower_bound(
-                    features.vecs, self.template
+            if self.blades.lower_bound:
+                t.lb = cf * self.lower_bound(
+                    features.vecs, t
                 )
 
             #TODO sort templates ???
@@ -90,7 +98,7 @@ class Jackknife:
                 for kk in range(0, len):
                     synthetic.append(Vector(s.trajectory[start + kk]))
 
-            features = JackknifeFeatures(self.blades, synthetic)
+            features = JkFeatures(self.blades, synthetic)
 
             for tt in range(0, template_cnt):
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
@@ -112,9 +120,9 @@ class Jackknife:
                 synthetic.len = 0
 
                 ##TODO Write GPSR
-                gpsr(self.templates[tt].sample.trajectory, synthetic, gpsr_n, 0.25, gpsr_r)
+                mathematics.gpsr(self.templates[tt].sample.trajectory, synthetic, gpsr_n, 0.25, gpsr_r)
 
-                features = JackknifeFeatures(self.blades, synthetic)
+                features = JkFeatures(self.blades, synthetic)
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
                 distributions[tt].add_positive_score(score)
 
@@ -153,9 +161,9 @@ class Jackknife:
             for jj in range(0,component_cnt):
                 if (self.blades.inner_product):
                     if (vecs[ii].data[jj] < 0.0):
-                        cost += vecs[ii].data[jj] * t.lower[ii].data[jj]
+                        cost += vecs[ii][jj] * t.lower[ii][jj]
                     else:
-                        cost += vecs[ii].data[jj] * t.upper[ii].data[jj]
+                        cost += vecs[ii][jj] * t.upper[ii][jj]
 
                 elif (self.blades.euclidean_dist):
                     diff = 0.0
@@ -175,46 +183,6 @@ class Jackknife:
             lb += cost
 
         return lb
-
-class JackknifeFeatures:
-    def __init__(self, blades=JkBlades, points=None):
-        self.pts = []
-        self.vecs = []
-
-        m = len(points[0].data)
-        self.pts = mathematics.resample(points=points, n=blades.resample_cnt)
-
-        minimum = Vector(self.pts[0].data)
-        maximum = Vector(self.pts[0].data)
-
-        self.abs = Vector(0.0, m)
-
-        for ii in range(1, blades.resample_cnt):
-            vec = self.pts[ii] - self.pts[ii - 1]
-
-            for jj in range(m):
-                self.abs.data[jj] += abs(vec.data[jj])
-
-                minimum.data[jj] = min(minimum.data[jj], self.pts[ii].data[jj])
-            
-            if (blades.inner_product):
-                self.vecs.append(Vector(vec.normalize()))
-            elif (blades.euclidean_distance):
-                if (ii == 1):
-                    self.vecs.append(Vector(self.pts[0]))
-
-                    self.vecs.append(Vector(self.pts[ii]))
-                else:
-                    assert(0)
-
-        if (blades.z_normalize):
-            self.z_normalize(self.vecs)
-
-        self.abs(self.normalize())
-        self.bb = (maximum.subtract(minimum)).normalize()      
-
-
-
 
 
 

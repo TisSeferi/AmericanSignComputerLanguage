@@ -158,8 +158,10 @@ def extract_from_videos():
 def assemble_templates():
     templates = []
     for path in os.listdir(TEMPLATES):
+        p = np.load(TEMPLATES + '/' + path)
         templates.append(np.load(TEMPLATES + '/' + path))
 
+    
     return templates
 
 
