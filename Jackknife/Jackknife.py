@@ -34,9 +34,9 @@ class Jackknife:
             if self.blades.cf_abs_distance:
                 print("\n\n\n\n\n\n\n")
                 print(features.abs)
-                print("------")
+                print("\n\n------\n\n")
                 print(t.features.abs)
-                print("\n\n\n\n\n\n\n")
+                print("Hi Dr. Pittman!! :D\n\n\n\n\n\n\n")
                 cf *= 1.0 / max(
                     0.01, np.dot(features.abs, t.features.abs)
                 )
