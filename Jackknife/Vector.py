@@ -11,7 +11,8 @@ class Vector:
         elif isinstance(x, int) and size is None:
             self.data = np.zeros(x, dtype=float)
         else:
-            raise ValueError("Invalid initialization parameters for Vector.")
+            self.data = x
+            #raise ValueError("Invalid initialization parameters for Vector.")
 
     def negative(self):
         return Vector(-self.data)

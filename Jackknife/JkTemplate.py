@@ -1,11 +1,11 @@
 import numpy as np
-import JkBlades
+from JkBlades import JkBlades
 import Jackknife as jk
 import Vector
 
 
 class JkTemplate:
-    def __init__(self, blades=JkBlades(), sample=None):
+    def __init__(self, blades = JkBlades(), sample=None):
         self.sample = sample
         self.gesture_id = None
         self.features = jk.JackknifeFeatures(blades, sample)

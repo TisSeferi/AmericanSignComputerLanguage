@@ -1,9 +1,10 @@
 import FeedData as fd
 import numpy as np
 import math
-import JkBlades
-import Vector
-import JackknifeTemplate
+from JkBlades import JkBlades
+from Vector import Vector
+import JkTemplate
+import mathematics
 
 
 # Add "JackknifeTemplate" object with parameters "blades" and "sample"
@@ -17,7 +18,7 @@ class Jackknife:
         self.templates = templates
     
     def add_template(self, sample):
-        self.templates.append(JackknifeTemplate(self.blades, sample))
+        self.templates.append(JkTemplate(self.blades, sample))
 
     def classify(self, trajectory):
 
@@ -181,15 +182,15 @@ class JackknifeFeatures:
         self.vecs = []
 
         m = len(points[0].data)
-        resampled_pts = self.resample(points, self.pts, blades.resample_cnt)
+        self.pts = mathematics.resample(points=points, n=blades.resample_cnt)
 
         minimum = Vector(self.pts[0].data)
         maximum = Vector(self.pts[0].data)
 
         self.abs = Vector(0.0, m)
 
-        for ii in range(1, len(blades.resample_cnt)):
-            vec = self.pts[ii].subtract(self.pts[ii - 1])
+        for ii in range(1, blades.resample_cnt):
+            vec = self.pts[ii] - self.pts[ii - 1]
 
             for jj in range(m):
                 self.abs.data[jj] += abs(vec.data[jj])
@@ -264,3 +265,6 @@ class Distributions:
         
         return ret
     
+j = Jackknife()
+data = np.load('test.npy')
+print(j.classify(data))

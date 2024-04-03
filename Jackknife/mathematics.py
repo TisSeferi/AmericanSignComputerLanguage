@@ -24,7 +24,8 @@ def resample(points, n, variance=0):
         list of tuples or NumPy arrays: Resampled points.
     """
     path_distance = np.linalg.norm(np.diff(points, axis=0), axis=1).sum()
-    intervals = np.zeros(n - 1)
+    print(n)
+    intervals = np.zeros(n-1)
 
     # Uniform resampling
     if variance == 0.0:
