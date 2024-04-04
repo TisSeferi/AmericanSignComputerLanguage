@@ -1,12 +1,13 @@
 import numpy as np
 from JkBlades import JkBlades
 from JkFeatures import JkFeatures
+import mathematics
 import Vector
 
 
 class JkTemplate:
     def __init__(self, blades=JkBlades(), sample=None):
-        self.sample = sample
+        self.sample = mathematics.flatten(sample)
         self.gesture_id = None
         self.features = JkFeatures(blades, sample)
 

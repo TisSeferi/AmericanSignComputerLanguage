@@ -6,16 +6,19 @@ import mathematics
 
 class JkFeatures:
     def __init__(self, blades=JkBlades, points=None):
-        self.pts = []
+        self.pts = mathematics.flatten(points)
         self.vecs = []
 
-        m = len(points[0].data)
-        self.pts = mathematics.resample(points=points, n=blades.resample_cnt)
+        m = np.shape(self.pts)[1]
+        #print(m)
+        self.pts = mathematics.resample(points=self.pts, n=blades.resample_cnt)
 
         minimum = self.pts[0]
         maximum = self.pts[0]
 
-        self.abs = np.zeros((m,2))
+        self.abs = np.zeros((m))
+
+        print(np.shape(self.pts))
 
         for ii in range(1, blades.resample_cnt):
             vec = self.pts[ii] - self.pts[ii - 1]

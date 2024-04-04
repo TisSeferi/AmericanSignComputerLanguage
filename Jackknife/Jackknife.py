@@ -18,13 +18,13 @@ class Jackknife:
         self.blades = blades
         self.templates = []
         for t in templates:
+            t = mathematics.flatten(t)
             self.add_template(t)
     
     def add_template(self, sample):
         self.templates.append(JkTemplate(self.blades, sample))
 
     def classify(self, trajectory):
-
         features = JkFeatures(self.blades, trajectory)
         template_cnt = int(len(self.templates))
 
@@ -32,11 +32,12 @@ class Jackknife:
             cf = 1.0
 
             if self.blades.cf_abs_distance:
-                print("\n\n\n\n\n\n\n")
-                print(features.abs)
-                print("\n\n------\n\n")
-                print(t.features.abs)
-                print("Hi Dr. Pittman!! :D\n\n\n\n\n\n\n")
+                #print("\n\n\n\n\n\n\nTemplate to claassify")
+                #print(features.abs)
+                #print("\n\n------\n\nTemplate from file")
+                #print(t.features.abs)
+                #print("Hello Dr. Pittman!\n\n\n\n\n\n\n")
+                #print(np.dot(features.abs, t.features.abs))
                 cf *= 1.0 / max(
                     0.01, np.dot(features.abs, t.features.abs)
                 )

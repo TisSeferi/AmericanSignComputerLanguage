@@ -1,7 +1,29 @@
 import numpy as np
+import mathematics
+
+def flatten(negative):
+    shape = np.shape(negative)
+    dimensions = len(shape)
+    #print(shape)
+    if(dimensions < 3):
+        print("Cannot flatten")
+        return(negative)
+    
+    dim = 1
+    for i in range(1, dimensions):
+        dim *= shape[i]
+
+    shape = (shape[0], dim)
+    developed = np.zeros(shape)
+    for index, frame in enumerate(negative):
+        developed[index] = frame.flatten()
+
+    #print(len(np.shape(developed)))
+    return developed
 
 def normalize(points):
-    return (points-np.min(points))/(np.max(points)-np.min(points))
+    norm = np.linalg.norm(points)
+    return points / norm
 
 def z_normalize(points):
     mean = np.mean(points)
@@ -26,7 +48,8 @@ def resample(points, n, variance=0):
     Returns:
         list of tuples or NumPy arrays: Resampled points.
     """
-    path_distance = np.linalg.norm(np.diff(points, axis=0), axis=1).sum()
+    points = mathematics.flatten(points)
+    path_distance = path_length(points)
     intervals = np.zeros(n-1)
 
     # Uniform resampling
@@ -46,6 +69,8 @@ def resample(points, n, variance=0):
     remaining_distance = path_distance * intervals[0]
 
     ii = 1
+    print("Mathematics resample")
+    print(len(points))
     while ii < len(points):
         distance = np.linalg.norm(points[ii] - prev)
 
@@ -58,6 +83,7 @@ def resample(points, n, variance=0):
         # Interpolate between the last point and the current point
         ratio = remaining_distance / distance
         interpolated_point = prev + ratio * (points[ii] - prev)
+        #print(np.shape(ret))
         ret.append(interpolated_point)
 
         if len(ret) == n:
@@ -65,6 +91,10 @@ def resample(points, n, variance=0):
 
         prev = interpolated_point
     
+    #print(len(ret))
+    while len(ret) < n:
+        ret.append(points[ii-1])
+
     return ret
 
 ##TODO Write GPSR
