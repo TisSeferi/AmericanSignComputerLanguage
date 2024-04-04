@@ -90,6 +90,8 @@ def resample(points, n, variance=0):
             break
 
         prev = interpolated_point
+        remaining_distance = path_distance * intervals[len(ret) - 1]
+
     
     #print(len(ret))
     while len(ret) < n:
