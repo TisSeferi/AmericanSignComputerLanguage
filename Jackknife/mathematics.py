@@ -33,7 +33,10 @@ def z_normalize(points):
     return(z_scores)
 
 def path_length(points):
-    return(np.linalg.norm(points))
+    total_len = 0.0
+    for i in range(1, len(points)):
+        total_len += np.linalg.norm(points[i] - points[i - 1])
+    return total_len
 
 
 def resample(points, n, variance=0):
@@ -69,8 +72,8 @@ def resample(points, n, variance=0):
     remaining_distance = path_distance * intervals[0]
 
     ii = 1
-    print("Mathematics resample")
-    print(len(points))
+    #print("Mathematics resample")
+    #print(len(points))
     while ii < len(points):
         distance = np.linalg.norm(points[ii] - prev)
 
@@ -82,15 +85,19 @@ def resample(points, n, variance=0):
 
         # Interpolate between the last point and the current point
         ratio = remaining_distance / distance
+        if (ratio > 1.0 or np.isnan(ratio)): 
+            ratio = 1.0
+        
         interpolated_point = prev + ratio * (points[ii] - prev)
         #print(np.shape(ret))
+
         ret.append(interpolated_point)
 
         if len(ret) == n:
             break
 
         prev = interpolated_point
-        remaining_distance = path_distance * intervals[len(ret) - 1]
+        remaining_distance = path_distance * intervals[min(len(ret), len(intervals) - 1)]
 
     
     #print(len(ret))

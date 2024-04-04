@@ -154,12 +154,14 @@ class Jackknife:
     
     def lower_bound(self, vecs, t):
         lb = 0.0
-        component_cnt = vecs[0].data.len
+        component_cnt = vecs[0]
 
-        for ii in range(0, vecs.len):
+        print(np.shape(vecs))
+
+        for ii in range(0, len(vecs)):
             cost = 0.0
-
-            for jj in range(0,component_cnt):
+            print(component_cnt)
+            for jj in range(0, component_cnt):
                 if (self.blades.inner_product):
                     if (vecs[ii].data[jj] < 0.0):
                         cost += vecs[ii][jj] * t.lower[ii][jj]
