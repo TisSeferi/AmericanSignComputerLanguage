@@ -132,61 +132,42 @@ class Jackknife:
             self.templates[tt].rejection_threshold = threshold
 
     def DTW (self, v1, v2):
-        cost = np.full(len(v1) + 1, len(v2) + 1, np.inf)
-        cost[0, 0] = 0
-
-        for ii in range(1, len(v1) + 1):
-            start_j = max(1, ii - int(self.blades.radius))
-            end_j = min(len(v2), ii + int(self.blades.radius))
-            for jj in range(start_j, end_j + 1):
-                
-                cost[ii, jj] = dist + min(cost[ii - 1, jj], cost[ii, jj - 1], cost[ii - 1, jj - 1])
-
-                if self.blades.inner_product:
-                    dist = 1.0 - np.dot(v1[ii - 1], v2[jj - 1]) / (np.linalg.norm(v1[ii - 1]) * np.linalg.norm(v2[jj - 1]))
-                elif self.blades.euclidean_dist:
-                    dist = np.linalg.norm(v1[ii - 1] - v2[jj - 1])
-                else:
-                    assert(0)
-
-
+        cost = np.full((len(v1) + 1, len(v2) + 1), np.inf)
+        cost[0, 0] = 0.0
+        for i in range(1, len(v1) + 1):
+            for j in range(max(1, i - int(self.blades.radius)), min(len(v2), i + int(self.blades.radius)) + 1):
+                dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
+                cost[i, j] = dist + min(cost[i-1, j], cost[i, j-1], cost[i-1, j-1])
         return cost[len(v1), len(v2)]
     
-    def lower_bound(self, vecs, t):
+    def lower_bound(vecs, template, blades):
         lb = 0.0
-        component_cnt = vecs[0]
+        component_cnt = vecs[0].data.shape[1]  # Assuming vecs is a list of numpy arrays with shape [n_samples, n_features]
 
-        print(np.shape(vecs))
-
-        for ii in range(0, len(vecs)):
+        for vec in vecs:
             cost = 0.0
-            print(component_cnt)
-            for jj in range(0, component_cnt):
-                if (self.blades.inner_product):
-                    if (vecs[ii].data[jj] < 0.0):
-                        cost += vecs[ii][jj] * t.lower[ii][jj]
+            for jj in range(component_cnt):
+                if blades['inner_product']:
+                    if vec.data[jj] < 0.0:
+                        cost += vec.data[jj] * template.lower[jj]
                     else:
-                        cost += vecs[ii][jj] * t.upper[ii][jj]
-
-                elif (self.blades.euclidean_dist):
+                        cost += vec.data[jj] * template.upper[jj]
+                elif blades['euclidean_distance']:
                     diff = 0.0
-
-                    if (vecs[ii].data[jj] < t.lower[ii].data[jj]):
-                        diff = vecs[ii].data[jj] - t.lower[ii].data[jj]
-                    elif(vecs[ii].data[jj] > t.upper[ii].data[jj]):
-                        diff = vecs[ii].data[jj] - t.upper[ii].data[jj]
-
-                    cost += (diff * diff)
+                    if vec.data[jj] < template.lower[jj]:
+                        diff = vec.data[jj] - template.lower[jj]
+                    elif vec.data[jj] > template.upper[jj]:
+                        diff = vec.data[jj] - template.upper[jj]
+                    cost += diff**2
                 else:
-                    assert(0)
+                    raise ValueError("Invalid configuration for blades.")
 
-            if self.blades.inner_product:
+            if blades['inner_product']:
                 cost = 1.0 - min(1.0, max(-1.0, cost))
-            
+
             lb += cost
 
         return lb
-
 
 
 class Distributions:
