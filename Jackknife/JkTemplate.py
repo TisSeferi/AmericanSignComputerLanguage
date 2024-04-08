@@ -44,5 +44,8 @@ class JkTemplate:
             self.upper.append(maximum)
             self.lower.append(minimum)
 
+        self.lower = np.array(self.lower)
+        self.upper = np.array(self.upper)
+
     def compare_templates(t1, t2):
         return t1.lb < t2.lb

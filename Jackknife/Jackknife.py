@@ -137,15 +137,14 @@ class Jackknife:
     
     def lower_bound(self, vecs, template):
         lb = 0.0
-        component_cnt = len(vecs[0])  # Assuming vecs is a list of numpy arrays with shape [n_samples, n_features]
+        component_cnt = np.shape(vecs)[0] - 1  # Assuming vecs is a list of numpy arrays with shape [n_samples, n_features]
+
         print("Jackknife 141")
         for vec in vecs:
             cost = 0.0
-            for jj in range(5):
+            for jj in range(component_cnt):
                 if self.blades.inner_product:
                     if vec[jj] < 0.0:
-                        print("Jackknife 148")
-                        print(jj)
                         cost += vec[jj] * template.lower[jj]
                     else:
                         cost += vec[jj] * template.upper[jj]
@@ -160,6 +159,7 @@ class Jackknife:
                     raise ValueError("Invalid configuration for blades.")
 
             if self.blades.inner_product:
+                print(cost)
                 cost = 1.0 - min(1.0, max(-1.0, cost))
 
             lb += cost
