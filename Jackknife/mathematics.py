@@ -85,8 +85,7 @@ def resample(points, n, variance=0):
 
         # Interpolate between the last point and the current point
         ratio = remaining_distance / distance
-        if (ratio > 1.0 or np.isnan(ratio)): 
-            ratio = 1.0
+        ratio = np.clip(ratio, 0, 1)
         
         interpolated_point = prev + ratio * (points[ii] - prev)
         #print(np.shape(ret))
