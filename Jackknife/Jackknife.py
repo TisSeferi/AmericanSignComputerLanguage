@@ -28,16 +28,13 @@ class Jackknife:
         features = JkFeatures(self.blades, trajectory)
         template_cnt = int(len(self.templates))
 
+        print("Jackknife 31")
+        print(np.shape(features.vecs))
+
         for t in self.templates:
             cf = 1.0
 
             if self.blades.cf_abs_distance:
-                #print("\n\n\n\n\n\n\nTemplate to claassify")
-                #print(features.abs)
-                #print("\n\n------\n\nTemplate from file")
-                #print(t.features.abs)
-                #print("Hello Dr. Pittman!\n\n\n\n\n\n\n")
-                #print(np.dot(features.abs, t.features.abs))
                 cf *= 1.0 / max(
                     0.01, np.dot(features.abs, t.features.abs)
                 )
@@ -50,9 +47,7 @@ class Jackknife:
             t.cf = cf
 
             if self.blades.lower_bound:
-                t.lb = cf * self.lower_bound(
-                    features.vecs, t
-                )
+                t.lb = cf * self.lower_bound(features.vecs, t)
 
             #TODO sort templates ???
         self.templates.sort(self.compare_templates)
@@ -140,20 +135,21 @@ class Jackknife:
                 cost[i, j] = dist + min(cost[i-1, j], cost[i, j-1], cost[i-1, j-1])
         return cost[len(v1), len(v2)]
     
-    def lower_bound(vecs, template, blades):
+    def lower_bound(self, vecs, template):
         lb = 0.0
-        print(vecs)
         component_cnt = len(vecs[0])  # Assuming vecs is a list of numpy arrays with shape [n_samples, n_features]
-
+        print("Jackknife 141")
         for vec in vecs:
             cost = 0.0
-            for jj in range(component_cnt):
-                if blades['inner_product']:
+            for jj in range(5):
+                if self.blades.inner_product:
                     if vec[jj] < 0.0:
+                        print("Jackknife 148")
+                        print(jj)
                         cost += vec[jj] * template.lower[jj]
                     else:
                         cost += vec[jj] * template.upper[jj]
-                elif blades['euclidean_distance']:
+                elif self.blades.euclidean_distance:
                     diff = 0.0
                     if vec[jj] < template.lower[jj]:
                         diff = vec[jj] - template.lower[jj]
@@ -163,7 +159,7 @@ class Jackknife:
                 else:
                     raise ValueError("Invalid configuration for blades.")
 
-            if blades['inner_product']:
+            if self.blades.inner_product:
                 cost = 1.0 - min(1.0, max(-1.0, cost))
 
             lb += cost

@@ -4,7 +4,7 @@ import mathematics
 def flatten(negative):
     shape = np.shape(negative)
     dimensions = len(shape)
-    #print(shape)
+    
     if(dimensions < 3):
         print("Cannot flatten")
         return(negative)

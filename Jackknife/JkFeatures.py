@@ -38,9 +38,10 @@ class JkFeatures:
                 else:
                     assert(0)
 
-        print(self.vecs)
+        self.vecs = np.array(self.vecs)
+
         if (blades.z_normalize):
            self.vecs = mathematics.z_normalize(self.vecs)
-        
+
         self.abs = mathematics.normalize(self.abs)
         self.bb = mathematics.normalize(maximum - minimum)
