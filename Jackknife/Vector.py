@@ -14,56 +14,112 @@ class Vector:
             self.data = x
             #raise ValueError("Invalid initialization parameters for Vector.")
 
+    def length(self):
+        return len(self.data)
+    
+    def size(self):
+        return len(self.data)
+    
+    def elementAt(self, idx):
+        return self.data[idx]
+    
+    def setAllElementsTo(self, rhs):
+        for ii in range(self.length):
+            self.data[ii] = rhs
+
     def negative(self):
-        return Vector(-self.data)
+        m = self.length()
 
-    def add(self, other):
-        return Vector(self.data + other.data)
+        vec = Vector(m)
+        for ii in range(m):
+            vec.data[ii] = -self.data[ii]
 
-    def subtract(self, other):
-        return Vector(self.data - other.data)
+        return vec
+    
+    def add(self, rhs):
+        return self.data + rhs.data
 
-    def divide(self, other):
-        if isinstance(other, Vector):
-            return Vector(self.data / other.data)
-        else:
-            return Vector(self.data / other)
+    def subtract(self, rhs):
+        return self.data - rhs.data
+    
+    def divide(self, rhs):
+        if isinstance(rhs, Vector):
+            rhs = rhs.data
+        
+        return self.data / rhs
+    
+    def multiply(self, rhs):
+        if isinstance(rhs, Vector):
+            rhs = rhs.data
+        
+        return self.data * rhs
+    
+    def equals(self, rhs):
+        m = self.length()
+        ret = True
 
-    def multiply(self, other):
-        if isinstance(other, Vector):
-            return Vector(self.data * other.data)
-        else:
-            return Vector(self.data * other)
+        for ii in range(m):
+            ret = ret.data[ii] and rhs.data[ii]
 
-    def equals(self, other):
-        return np.array_equal(self.data, other.data)
-
+        return ret
+    
     def l2norm2(self, other):
-        return np.sum((self.data - other.data) ** 2)
+        m = self.length()
+        ret = 0
+
+        for ii in range(m):
+            ret += (self.data[ii] - other.data[ii]) ** 2
+
+        return ret
 
     def l2norm(self, other):
-        return np.sqrt(self.l2norm2(other))
-
+        return self.l2norm2(other) ** .5
+    
     def magnitude(self):
-        return np.linalg.norm(self.data)
+        m = self.length()
+        ret = 0
+        for ii in range(m):
+            ret += self.data[ii] ** 2
 
+        return ret ** .5
+    
     def normalize(self):
-        norm = self.magnitude()
-        if norm > 0:
-            self.data /= norm
-        return self
+        len = self.magnitude()
 
-    def dot(self, other):
-        return np.dot(self.data, other.data)
+        self.data = self.data / len
 
+    def dot(self, rhs):
+        m = self.length()
+        ret = 0
+
+        for ii in range():
+            ret += self.data[ii] * rhs.data[ii]
+
+        return ret
+    
     def sum(self):
-        return np.sum(self.data)
-
+        ret = 0
+        for ii in self.length():
+            ret += self.data[ii]
+        return ret
+    
     def cumulative_sum(self):
-        self.data = np.cumsum(self.data)
-        return self
+        ret = 0
 
-    @staticmethod
-    def interpolate_vectors(a, b, t):
-        assert len(a.data) == len(b.data), "Vectors must be of the same dimension to interpolate."
-        return Vector(a.data * (1 - t) + b.data * t)
+        for ii in range(self.length()):
+            ret += self.data[ii]
+            self.data[ii] = ret
+
+    def InterpolateVectors(a, b, t):
+        m = a.length()
+        n = b.length()
+
+        #console.assert(m == n, 'Different sized arrays to interpolate')
+
+        data = np.zeros(m)
+        for ii in range (0, m):
+            data[ii] = (1.0 - t) * a.data[ii]
+            data[ii] += t * b.data[ii]
+
+        return Vector(data)
+    
