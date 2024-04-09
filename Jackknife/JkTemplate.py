@@ -10,8 +10,10 @@ class JkTemplate:
     #def __init__(self, blades=JkBlades(), sample=None):
     def __init__(self, blades=JkBlades(), sample=None, gid = None):
         #self.gesture_id = None
+        self.sample = sample
         self.gesture_id = gid
         self.features = JkFeatures(blades, sample)
+
 
         # TODO Identify gesture IDs
 
