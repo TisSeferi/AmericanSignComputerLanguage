@@ -134,7 +134,7 @@ class Jackknife:
         cost = np.full((len(v1) + 1, len(v2) + 1), np.inf)
         cost[0, 0] = 0.0
         for i in range(1, len(v1) + 1):
-            for j in range(max(1, i - int(self.blades.radius)), min(len(v2), i + int(self.blades.radius)) + 1):
+            for j in range(max(1, i -math.floor(self.blades.radius)), min(len(v2), i + math.floor(self.blades.radius)) + 1):
                 #dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
                 #TODO: Unknown if correct
                 dist = np.inner(v1[i - 1], v2[j - 1])

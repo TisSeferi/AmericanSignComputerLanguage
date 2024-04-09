@@ -1,6 +1,7 @@
 import numpy as np
 import random as r
 import mathematics
+import math
 
 def flatten(negative):
     shape = np.shape(negative)
@@ -115,17 +116,17 @@ def gpsr(points, n, variance, remove_cnt) :
     # Remove random points to simulate cutting corners.
     for ii in range(remove_cnt):
         remove_idx = r.randint(start = 0, stop = 65535)
-        remove_idx = int(remove_idx % int(n + remove_cnt - ii))
+        remove_idx = math.floor(remove_idx % math.floor(n + remove_cnt - ii))
         resampled.splice(remove_idx, 1)
     
 
     # Construct synthetic variation.
     m = resampled[0].data.length
-    #ret.push(new Vector(0, m))
-#
-    #for (var ii = 1; ii < resampled.length; ii++):
-    #    var delta = resampled[ii].subtract(resampled[ii - 1]);
-    #    ret.push(delta.normalize());
+    ret = np.zeros(m)
+
+    for ii in range(1, resample.length):
+        delta = resampled[ii] - resampled[ii - 1]
+        ret[ii] = mathematics.normalize(delta)
     
 
 # x = resample(points = np.load('templates/down-1.npy'), n = 6, variance=.1)

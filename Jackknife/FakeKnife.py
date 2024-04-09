@@ -85,7 +85,7 @@ class Jackknife:
                 s = self.templates[tt].sample
                 len = s.trajectory.len
 
-                start = int(math.random() * (len / 2) % (len / 2))
+                start = math.floor(math.random() * (len / 2) % (len / 2))
 
                 for kk in range(0, len):
                     synthetic.append(Vector(s.trajectory[start + kk]))
@@ -127,8 +127,8 @@ class Jackknife:
         cost[0, 0] = 0
 
         for ii in range(1, len(v1) + 1):
-            start_j = max(1, ii - int(self.blades.radius))
-            end_j = min(len(v2), ii + int(self.blades.radius))
+            start_j = max(1, ii - math.floor(self.blades.radius))
+            end_j = min(len(v2), ii + math.floor(self.blades.radius))
             for jj in range(start_j, end_j + 1):
                 
                 cost[ii, jj] = dist + min(cost[ii - 1, jj], cost[ii, jj - 1], cost[ii - 1, jj - 1])

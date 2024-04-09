@@ -1,6 +1,7 @@
 import numpy as np
 from JkBlades import JkBlades
 from JkFeatures import JkFeatures
+import math
 import mathematics
 import Vector
 
@@ -29,7 +30,7 @@ class JkTemplate:
             maximum = np.full(component_cnt, -1 * np.inf)
             minimum = np.full(component_cnt, np.inf)
 
-            start = max(0, ii - int(blades.radius))
+            start = max(0, ii - math.floor(blades.radius))
             end = min(ii + blades.radius + 1, len(vecs))
 
             for jj in range(start, end):
