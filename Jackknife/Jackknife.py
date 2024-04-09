@@ -8,6 +8,7 @@ from JkTemplate import JkTemplate
 from JkTemplate import compare_templates
 from JkFeatures import JkFeatures
 import mathematics
+import random as r
 
 
 # Add "JackknifeTemplate" object with parameters "blades" and "sample"
@@ -90,14 +91,14 @@ class Jackknife:
         for ii in range(0, 1000):
 
             for jj in range (0, 2):
-                tt = math.floor(math.random() * template_cnt % template_cnt)
+                tt = math.floor(r.random() * template_cnt % template_cnt)
 
                 s = self.templates[tt].sample
-                len = s.trajectory.len
+                length = len(s.trajectory)
 
-                start = math.floor(math.random() * (len / 2) % (len / 2))
+                start = math.floor(r.random() * (length / 2) % (length / 2))
 
-                for kk in range(0, len):
+                for kk in range(0, length):
                     synthetic.append(s.trajectory[start + kk]) 
 
             features = JkFeatures(self.blades, synthetic)
@@ -134,7 +135,7 @@ class Jackknife:
         cost = np.full((len(v1) + 1, len(v2) + 1), np.inf)
         cost[0, 0] = 0.0
         for i in range(1, len(v1) + 1):
-            for j in range(max(1, i -math.floor(self.blades.radius)), min(len(v2), i + math.floor(self.blades.radius)) + 1):
+            for j in range(max(1, i - int(self.blades.radius)), min(len(v2), i + int(self.blades.radius)) + 1):
                 #dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
                 #TODO: Unknown if correct
                 dist = np.inner(v1[i - 1], v2[j - 1])
