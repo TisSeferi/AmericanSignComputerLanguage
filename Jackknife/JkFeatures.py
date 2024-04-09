@@ -18,7 +18,7 @@ class JkFeatures:
 
         self.abs = np.zeros((m))
 
-        print(np.shape(self.pts))
+        #print(np.shape(self.pts))
 
         for ii in range(1, blades.resample_cnt):
             vec = self.pts[ii] - self.pts[ii - 1]

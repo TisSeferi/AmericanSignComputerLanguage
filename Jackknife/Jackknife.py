@@ -1,9 +1,11 @@
 import FeedData as fd
+from functools import cmp_to_key
 import numpy as np
 import math
 from JkBlades import JkBlades
 from Vector import Vector
 from JkTemplate import JkTemplate
+from JkTemplate import compare_templates
 from JkFeatures import JkFeatures
 import mathematics
 
@@ -12,24 +14,28 @@ import mathematics
 # Add "JackknifeFeatures" with parameters "blades" and "trajectory"
 # Terms:
 # Trajectory is the incoming data stream from our camera feed
+GPSR_N = 6
+GPSR_R = 2
+BETA = 1.00
+
 
 class Jackknife:
     def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
         self.blades = blades
         self.templates = []
-        for t in templates:
+        for ii, t in enumerate(templates):
             t = mathematics.flatten(t)
-            self.add_template(t)
+            self.add_template(sample = t, id = ii % 5)
+        self.length  = len(self.templates)
+        self.train(GPSR_N, GPSR_R, BETA)
+        
     
-    def add_template(self, sample):
-        self.templates.append(JkTemplate(self.blades, sample))
+    def add_template(self, sample, id):
+        self.templates.append(JkTemplate(self.blades, sample=sample, gid=id))
 
     def classify(self, trajectory):
         features = JkFeatures(self.blades, trajectory)
         template_cnt = int(len(self.templates))
-
-        print("Jackknife 31")
-        print(np.shape(features.vecs))
 
         for t in self.templates:
             cf = 1.0
@@ -50,7 +56,8 @@ class Jackknife:
                 t.lb = cf * self.lower_bound(features.vecs, t)
 
             #TODO sort templates ???
-        self.templates.sort(self.compare_templates)
+            
+        self.templates = sorted(self.templates, key=cmp_to_key(compare_templates))
         best = np.inf
         ret = -1
 
@@ -58,12 +65,12 @@ class Jackknife:
 
             if (self.templates[tt].lb > self.templates[tt].rejection_threshold):
                 continue
-            if (self.templates[tt] > best):
+            if (self.templates[tt].lb > best):
                 continue
 
             score = self.templates[tt].cf
 
-            score *= self.DTW(features.vecs, self.templates[tt].features.vec)
+            score *= self.DTW(features.vecs, self.templates[tt].features.vecs)
 
             if (score > self.templates[tt].rejection_threshold):
                 continue
@@ -74,14 +81,13 @@ class Jackknife:
         return ret
     
     def train(self, gpsr_n, gpsr_r, beta):
-        template_cnt = self.templates.len
+        template_cnt = self.length
         distributions = []
         synthetic = []
 
         worst_score = 0.0
 
         for ii in range(0, 1000):
-            synthetic.len = 0
 
             for jj in range (0, 2):
                 tt = math.floor(math.random() * template_cnt % template_cnt)
@@ -89,10 +95,10 @@ class Jackknife:
                 s = self.templates[tt].sample
                 len = s.trajectory.len
 
-                start = int(math.random() * (len / 2) % (len / 2))
+                start = math.floor(math.random() * (len / 2) % (len / 2))
 
                 for kk in range(0, len):
-                    synthetic.append(Vector(s.trajectory[start + kk]))
+                    synthetic.append(s.trajectory[start + kk]) 
 
             features = JkFeatures(self.blades, synthetic)
 
@@ -113,10 +119,8 @@ class Jackknife:
         
         for tt in range(0, template_cnt):
             for ii in range(0, 1000):
-                synthetic.len = 0
-
                 ##TODO Write GPSR
-                mathematics.gpsr(self.templates[tt].sample.trajectory, synthetic, gpsr_n, 0.25, gpsr_r)
+                synthetic = mathematics.gpsr(self.templates[tt].sample.trajectory, synthetic, gpsr_n, 0.25, gpsr_r)
 
                 features = JkFeatures(self.blades, synthetic)
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
@@ -131,14 +135,15 @@ class Jackknife:
         cost[0, 0] = 0.0
         for i in range(1, len(v1) + 1):
             for j in range(max(1, i - int(self.blades.radius)), min(len(v2), i + int(self.blades.radius)) + 1):
-                dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
+                #dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
+                #TODO: Unknown if correct
+                dist = np.inner(v1[i - 1], v2[j - 1])
                 cost[i, j] = dist + min(cost[i-1, j], cost[i, j-1], cost[i-1, j-1])
         return cost[len(v1), len(v2)]
     
     def lower_bound(self, vecs, template):
         lb = 0.0
         component_cnt = vecs.shape[1]  # Assuming vecs is a list of numpy arrays with shape [n_samples, n_features]
-        print("Jackknife 141")
         for ii, vec in enumerate(vecs):
             cost = 0.0
             for jj in range(component_cnt):
@@ -157,7 +162,6 @@ class Jackknife:
                 else:
                     raise ValueError("Invalid configuration for blades.")
             inner_prod = bool(self.blades.inner_product)
-            print(cost)
             if inner_prod:
                 cost = 1.0 - min(1.0, max(-1.0, cost))
 

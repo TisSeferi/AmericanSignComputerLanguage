@@ -1,4 +1,5 @@
 import numpy as np
+import random as r
 import mathematics
 
 def flatten(negative):
@@ -51,7 +52,6 @@ def resample(points, n, variance=0):
     Returns:
         list of tuples or NumPy arrays: Resampled points.
     """
-    points = mathematics.flatten(points)
     path_distance = path_length(points)
     intervals = np.zeros(n-1)
 
@@ -106,6 +106,27 @@ def resample(points, n, variance=0):
     return ret
 
 ##TODO Write GPSR
+
+
+def gpsr(points, n, variance, remove_cnt) :
+    resampled = resample(points, n + remove_cnt, variance)
+    print(resampled)
+
+    # Remove random points to simulate cutting corners.
+    for ii in range(remove_cnt):
+        remove_idx = r.randint(start = 0, stop = 65535)
+        remove_idx = int(remove_idx % int(n + remove_cnt - ii))
+        resampled.splice(remove_idx, 1)
+    
+
+    # Construct synthetic variation.
+    m = resampled[0].data.length
+    #ret.push(new Vector(0, m))
+#
+    #for (var ii = 1; ii < resampled.length; ii++):
+    #    var delta = resampled[ii].subtract(resampled[ii - 1]);
+    #    ret.push(delta.normalize());
+    
 
 # x = resample(points = np.load('templates/down-1.npy'), n = 6, variance=.1)
 # print(x)

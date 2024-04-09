@@ -6,9 +6,10 @@ import Vector
 
 
 class JkTemplate:
-    def __init__(self, blades=JkBlades(), sample=None):
-        self.sample = mathematics.flatten(sample)
-        self.gesture_id = None
+    #def __init__(self, blades=JkBlades(), sample=None):
+    def __init__(self, blades=JkBlades(), sample=None, gid = None):
+        #self.gesture_id = None
+        self.gesture_id = gid
         self.features = JkFeatures(blades, sample)
 
         # TODO Identify gesture IDs
@@ -25,8 +26,8 @@ class JkTemplate:
         component_cnt = len(vecs[0])
 
         for ii, vec in enumerate(vecs):
-            maximum = np.full(component_cnt, np.inf)
-            minimum = np.full(component_cnt, 2, -1 * np.inf)
+            maximum = np.full(component_cnt, -1 * np.inf)
+            minimum = np.full(component_cnt, np.inf)
 
             start = max(0, ii - int(blades.radius))
             end = min(ii + blades.radius + 1, len(vecs))
@@ -47,5 +48,5 @@ class JkTemplate:
         self.lower = np.array(self.lower)
         self.upper = np.array(self.upper)
 
-    def compare_templates(t1, t2):
-        return t1.lb < t2.lb
+def compare_templates(t1, t2):
+    return t1.lb < t2.lb
