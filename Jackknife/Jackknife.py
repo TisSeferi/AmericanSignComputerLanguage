@@ -120,7 +120,6 @@ class Jackknife:
         
         for tt in range(0, template_cnt):
             for ii in range(0, 1000):
-                ##TODO Write GPSR
                 synthetic = mathematics.gpsr(self.templates[tt].sample.trajectory, synthetic, gpsr_n, 0.25, gpsr_r)
 
                 features = JkFeatures(self.blades, synthetic)
@@ -132,14 +131,20 @@ class Jackknife:
             self.templates[tt].rejection_threshold = threshold
 
     def DTW (self, v1, v2):
+
         cost = np.full((len(v1) + 1, len(v2) + 1), np.inf)
         cost[0, 0] = 0.0
-        for i in range(1, len(v1) + 1):
-            for j in range(max(1, i - int(self.blades.radius)), min(len(v2), i + int(self.blades.radius)) + 1):
+
+
+        for ii in range(1, len(v1) + 1):
+            for jj in range(max(1, ii - math.floor(self.blades.radius)), min(len(v2), ii + math.floor(self.blades.radius)) + 1):
                 #dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
-                #TODO: Unknown if correct
-                dist = np.inner(v1[i - 1], v2[j - 1])
-                cost[i, j] = dist + min(cost[i-1, j], cost[i, j-1], cost[i-1, j-1])
+                #TODO: Unknown if correct  
+                cost[ii, jj] = min(min(cost[ii-1, jj], cost[ii, jj-1], cost[ii-1, jj-1]))
+        
+            if (self.blades.inner_product):
+                cost[ii][jj] += 1.0 - v1[ii - 1].dot(v2[jj - 1])
+        
         return cost[len(v1), len(v2)]
     
     def lower_bound(self, vecs, template):
