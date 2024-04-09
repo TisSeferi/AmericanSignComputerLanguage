@@ -24,14 +24,17 @@ def flatten(negative):
     return developed
 
 def normalize(points):
-    norm = np.linalg.norm(points)
+    print(points[0])
+    norm = np.linalg.norm(points, 0)
+    
     return points / norm
 
 def z_normalize(points):
-    mean = np.mean(points)
-    std_val = np.std(points)
+    mean = np.mean(points, 0)
+    std_val = np.std(points, 0)
 
     z_scores = (points - mean) / std_val
+    
     return(z_scores)
 
 def path_length(points):
@@ -121,7 +124,7 @@ def gpsr(points, n, variance, remove_cnt) :
     
 
     # Construct synthetic variation.
-    m = resampled[0].data.length
+    m = len(resampled[0])
     ret = np.zeros(m)
 
     for ii in range(1, resample.length):

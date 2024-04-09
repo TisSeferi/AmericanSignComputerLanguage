@@ -29,6 +29,7 @@ class Jackknife:
             self.add_template(sample = t, id = ii % 5)
         self.length  = len(self.templates)
         self.train(GPSR_N, GPSR_R, BETA)
+ 
         
     
     def add_template(self, sample, id):
@@ -94,18 +95,22 @@ class Jackknife:
                 tt = math.floor(r.random() * template_cnt % template_cnt)
 
                 s = self.templates[tt].sample
-                length = len(s.trajectory)
+                length = len(s)
+
+                print("line 99")
+                print(length)
 
                 start = math.floor(r.random() * (length / 2) % (length / 2))
 
-                for kk in range(0, length):
-                    synthetic.append(s.trajectory[start + kk]) 
+                for kk in range(0, int(length/2)):
+                    synthetic.append(s[start + kk]) 
 
             features = JkFeatures(self.blades, synthetic)
 
             for tt in range(0, template_cnt):
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
-
+                print("Line 112")
+                print(score)
                 if (worst_score < score):
                     worst_score = score
                 if (ii > 50):
@@ -133,19 +138,24 @@ class Jackknife:
     def DTW (self, v1, v2):
 
         cost = np.full((len(v1) + 1, len(v2) + 1), np.inf)
-        cost[0, 0] = 0.0
+        cost[0][0] = 0.0
 
-
-        for ii in range(1, len(v1) + 1):
+        print("JK 143 Printing cost matrix")
+        for ii in range(1, len(v1)+1):
             for jj in range(max(1, ii - math.floor(self.blades.radius)), min(len(v2), ii + math.floor(self.blades.radius)) + 1):
                 #dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
                 #TODO: Unknown if correct  
-                cost[ii, jj] = min(min(cost[ii-1, jj], cost[ii, jj-1], cost[ii-1, jj-1]))
-        
+                cost[ii][jj] = min(min(cost[ii-1][jj], cost[ii][jj-1]), cost[ii-1][jj-1])
+                
+                print(str(ii) + " " + str(jj) + " " + str(cost[ii][jj]))
             if (self.blades.inner_product):
-                cost[ii][jj] += 1.0 - v1[ii - 1].dot(v2[jj - 1])
+                cost[ii][jj] += 1.0 - np.dot(v1[ii - 1], v2[jj - 1])
+            elif (self.blades.euclidean_distance):
+                cost[ii][jj] += np.sum((v1[ii - 1] - v2[jj - 1]) ** 2)                
+            else:
+                assert(0)
         
-        return cost[len(v1), len(v2)]
+        return cost[len(v1)][len(v2)]
     
     def lower_bound(self, vecs, template):
         lb = 0.0
@@ -178,40 +188,43 @@ class Jackknife:
 
 class Distributions:
     def __init__(self, max_score, bin_cnt):
-        self.neg = Vector(0, bin_cnt)
-        self.pos = Vector(0, bin_cnt)
+        self.neg = np.zeros((bin_cnt), dtype='f')
+        self.pos = np.zeros((bin_cnt), dtype='f')
         self.max_score = max_score
 
     def bin (self, score):
-        return min(math.floor(score * (self.neg.len / self.max_score)), self.neg.len - 1)
+        print("JK 193 " + str(self.max_score))
+        pt1 = math.floor(score * (len(self.neg) / self.max_score))
+        pt2 = len(self.neg) - 1
+        return min(pt1, pt2)
     
     def add_negative_score(self, score):
-        self.neg.data[self.bin(score)] += 1
+        self.neg[self.bin(score)] += 1
 
     def add_positive_score(self, score):
-        self.pos.data[self.bin(score)] += 1
+        self.pos[self.bin(score)] += 1
 
     def rejection_threshold(self, beta):
 
-        self.neg = self.neg.divide(self.neg.sum())
-        self.neg.cumulative_sum()
-        assert(abs(self.neg.data[self.neg.data.len - 1] - 1.0) < .00001)
+        self.neg = self.neg / (np.sum(self.neg))
+        self.neg = np.cumsum(self.neg)
+        assert(abs(self.neg[len(self.neg) - 1] - 1.0) < .00001)
 
-        self.pos = self.pos.divide(self.pos.sum())
-        self.pos.cumulative_sum()
-        assert(abs(self.pos.data[self.pos.data.len - 1] - 1.0) < .00001)
+        self.pos = self.pos / (np.sum(self.pos))
+        self.pos = np.cumsum(self.pos)
+        assert(abs(self.pos[len(self.pos) - 1] - 1.0) < .00001)
 
         alpha = 1.0 / (1.0 + beta * beta)
-        precision = self.pos.divide((self.pos.add(self.neg)))
+        precision = self.pos / (self.pos + self.neg)
 
         recall = self.pos
 
         best_score = 0.0
         best_idx = -1
 
-        for ii in range(0, self.neg.len):
-            
-            E = (alpha / precision.data[ii]) + ((1.0 - alpha) / recall.data[ii])
+        for ii in range(0, len(self.neg)):
+            #might need fixing
+            E = (alpha / precision[ii]) + ((1.0 - alpha) / recall[ii])
             f_score = 1.0 / E
 
             if (f_score > best_score):
@@ -219,7 +232,7 @@ class Distributions:
                 best_idx = ii
 
         ret = best_idx + 0.5
-        ret *= self.max_score / self.neg.len
+        ret *= self.max_score / len(self.neg)
         
         return ret
     
