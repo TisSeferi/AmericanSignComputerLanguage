@@ -25,8 +25,8 @@ class JkTemplate:
         component_cnt = len(vecs[0])
 
         for ii, vec in enumerate(vecs):
-            maximum = np.full((component_cnt, 2), np.inf)
-            minimum = np.full((component_cnt, 2), -1 * np.inf)
+            maximum = np.full(component_cnt, np.inf)
+            minimum = np.full(component_cnt, 2, -1 * np.inf)
 
             start = max(0, ii - int(blades.radius))
             end = min(ii + blades.radius + 1, len(vecs))
