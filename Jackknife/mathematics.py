@@ -59,7 +59,7 @@ def path_length(points):
 
     return ret
 
-def resample(points, ret, n, variance = None):
+def resample(points, ret=None, n = 8, variance = None):
     path_distance = path_length(points)
     intervals = Vector(n - 1)
 

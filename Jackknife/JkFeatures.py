@@ -12,6 +12,7 @@ class JkFeatures:
         m = len(points[0].data)
         #print(m)
 
+        print(self.pts)
         self.pts = mathematics.resample(points=self.pts, n=blades.resample_cnt)
 
         minimum = Vector(self.pts[0].data)

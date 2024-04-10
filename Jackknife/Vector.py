@@ -4,7 +4,10 @@ class Vector:
     def __init__(self, x, size=None):
         if isinstance(x, Vector):
             self.data = x.data.copy()
-        elif isinstance(x, (list, np.ndarray)):
+        elif isinstance(x, list):
+            print(x)
+            print("Thanks for finding the exception")
+        elif isinstance(x, np.ndarray):
             self.data = np.array(x, dtype=float)
         elif isinstance(x, (int, float)) and size is not None:
             self.data = np.full(size, x, dtype=float)

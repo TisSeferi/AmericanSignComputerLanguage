@@ -164,7 +164,7 @@ def assemble_templates():
     
     return templates
 
-
+#extract_from_videos()
 # print('Running Recognition')
 # 
 # t = time.time()
