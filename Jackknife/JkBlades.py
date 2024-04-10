@@ -4,7 +4,7 @@ class JkBlades:
         self.resample_cnt = 8
         self.radius = 8
         self.euclidean_distance = True
-        self.z_normalize = True
+        self.z_normalize = False
         self.inner_product = True
         self.lower_bound = True
         self.cf_abs_distance = True

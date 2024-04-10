@@ -17,7 +17,7 @@ class JkTemplate:
         self.upper = []
 
         self.lb = -1.0
-        self.cf = -1.0
+        self.cf = 1.0
 
         self.rejection_threshold = np.inf
         self.features = JkFeatures(blades, sample)

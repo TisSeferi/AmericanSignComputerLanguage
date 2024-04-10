@@ -17,7 +17,7 @@ BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 BUFFER_LENGTH = BUFFER_FRAMES * NUM_POINTS
 
 RAW_VIDS_FOLDER = '../TestVideos/'
-TEMPLATES = '../templates/'
+TEMPLATES = 'C:/Users/n01492932/Desktop/Proj2Gestures/ShellHandManipulation/AmericanSignComputerLanguage/templates/'
 
 HAND_REF = [
     'wrist',
@@ -146,7 +146,7 @@ def save_template(path):
     path = RAW_VIDS_FOLDER + path
     data = process_video(path)
     np.save(TEMPLATES + name, data)
-    print(data)
+    # print(data)
 
 
 def extract_from_videos():

@@ -11,10 +11,10 @@ class JkFeatures:
         self.vecs = Vector([])
 
         m = points[0].length()
-        print(m)
+        # print(m)
 
         self.pts = mathematics.resample(points=self.pts, n=blades.resample_cnt)
-        print(self.pts)
+        # print(self.pts)
 
         minimum = Vector(self.pts[0])
         maximum = Vector(self.pts[0])
