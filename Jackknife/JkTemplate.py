@@ -2,13 +2,13 @@ import numpy as np
 from JkBlades import JkBlades
 from JkFeatures import JkFeatures
 import math
-import Vector
+from Vector import Vector
 
 
 class JkTemplate:
     #def __init__(self, blades=JkBlades(), sample=None):
     def __init__(self, blades=JkBlades(), sample=None, gid = None):
-        #self.gesture_id = None
+        self.sample = sample
         self.gesture_id = gid
 
         # TODO Identify gesture IDs
@@ -23,14 +23,18 @@ class JkTemplate:
         self.features = JkFeatures(blades, sample)
 
         vecs = self.features.vecs
-        component_cnt = len(vecs[0].data)
+        component_cnt = vecs[0].length()
 
-        for ii in range(len(vecs)):
-            maximum = Vector(np.inf * -1, component_cnt)
-            minimum = Vector(np.inf, component_cnt)
+        for ii in range(vecs.length()):
+            maximum = Vector(
+                np.full(component_cnt, np.inf * -1)
+            )
+            minimum = Vector(
+                np.full(component_cnt, np.inf)
+            )
 
             start = max(0, ii - math.floor(blades.radius))
-            end = min(ii + blades.radius + 1, len(vecs))
+            end = min(ii + blades.radius + 1, vecs.length())
 
             for jj in range(start, end):
                 for kk in range(component_cnt):

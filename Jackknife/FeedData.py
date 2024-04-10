@@ -1,7 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import pandas as pd
 import time
 import os
 
@@ -17,8 +16,8 @@ BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
 BUFFER_LENGTH = BUFFER_FRAMES * NUM_POINTS
 
-RAW_VIDS_FOLDER = 'TestVideos/'
-TEMPLATES = 'templates/'
+RAW_VIDS_FOLDER = '../TestVideos/'
+TEMPLATES = '../templates/'
 
 HAND_REF = [
     'wrist',
