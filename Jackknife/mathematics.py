@@ -1,5 +1,6 @@
 import numpy as np
 import random as r
+import Vector
 import mathematics
 import math
 
@@ -23,114 +24,111 @@ def flatten(negative):
     #print(len(np.shape(developed)))
     return developed
 
-def normalize(points):
-    print(points[0])
-    norm = np.linalg.norm(points, 0)
-    
-    return points / norm
-
 def z_normalize(points):
-    mean = np.mean(points, 0)
-    std_val = np.std(points, 0)
+    n = points.length()
+    m = points[0].length()
 
-    z_scores = (points - mean) / std_val
-    
-    return(z_scores)
+    mean = Vector(0.0, m)
+    variance = Vector(0.0, m)
+
+    for ii in range(n):
+        mean = mean.add(points[ii])
+
+    mean = mean.divide(n)
+
+    for ii in range(n):
+        for jj in range(m):
+            diff = points[ii].data[jj] - mean.data[jj]
+            variance.data[jj] += diff ** 2
+
+    variance = variance.divide(n-1)
+
+    for ii in range(m):
+        variance.data[ii] = variance.data ** .5
+
+    for ii in range(n):
+        points[ii] = (points[ii].subtract(mean)).divide(variance)
+
+    return points
 
 def path_length(points):
-    total_len = 0.0
-    for i in range(1, len(points)):
-        total_len += np.linalg.norm(points[i] - points[i - 1])
-    return total_len
+    ret = 0.0
 
+    for ii in range (1, points.length()):
+        ret += points[ii].l2norm(points[ii-1])
 
-def resample(points, n, variance=0):
-    """
-    Resamples a set of points using linear interpolation or nearest neighbor.
+    return ret
 
-    Args:
-        points (list of tuples or NumPy arrays): Original points.
-        n (int): Number of desired resampled points.
-        variance (float, optional): Variance for stochastic resampling (default is 0).
-
-    Returns:
-        list of tuples or NumPy arrays: Resampled points.
-    """
+def resample(points, ret, n, variance = None):
     path_distance = path_length(points)
-    intervals = np.zeros(n-1)
+    intervals = Vector(n - 1)
 
-    # Uniform resampling
-    if variance == 0.0:
-        intervals.fill(1.0 / (n - 1))
-    # Stochastic resampling
+    interval = None
+    ii = None
+
+    if not variance:
+        intervals.setAllElementsTo(1.0/(n-1))
     else:
-        b = np.sqrt(12 * variance)
-        rr = np.random.rand(n - 1)
-        intervals = 1.0 + rr * b
-        intervals /= intervals.sum()
+        for ii in range(n-1):
+            b = (12 * variance) ** .5
+            rr = r.random()
+            intervals.data[ii] = 1.0 + rr * b
+        
+        intervals = intervals.divide(intervals.sum())
 
-    assert np.isclose(intervals.sum(), 1.0, atol=1e-5)
+    assert abs(intervals.sum() - 1 < .00001)
 
-    ret = [points[0]]
+    remaining_distance = path_distance * intervals.elementAt(0)
     prev = points[0]
-    remaining_distance = path_distance * intervals[0]
 
+    ret.append(Vector(points[0]))
     ii = 1
-    #print("Mathematics resample")
-    #print(len(points))
-    while ii < len(points):
-        distance = np.linalg.norm(points[ii] - prev)
+
+    while(ii < points.length()):
+        distance = points[ii].l2norm(prev)
 
         if distance < remaining_distance:
             prev = points[ii]
             remaining_distance -= distance
             ii += 1
             continue
+    ratio = remaining_distance / distance
 
-        # Interpolate between the last point and the current point
-        ratio = remaining_distance / distance
-        ratio = np.clip(ratio, 0, 1)
-        
-        interpolated_point = prev + ratio * (points[ii] - prev)
-        #print(np.shape(ret))
+    if ratio > 1.0 or math.isnan(ratio):
+        ratio = 1.0
 
-        ret.append(interpolated_point)
+    ret.append(
+        Vector.InterpolateVectors(
+            prev, points[ii], ratio
+        )
+    )
 
-        if len(ret) == n:
-            break
-
-        prev = interpolated_point
-        remaining_distance = path_distance * intervals[min(len(ret), len(intervals) - 1)]
-
+    if ret.length() == n:
+        return None
     
-    #print(len(ret))
-    while len(ret) < n:
-        ret.append(points[ii-1])
+    prev = ret[ret.length() - 1]
 
-    return ret
+    remaining_distance = path_distance * intervals.elementAt(ret.length - 1)
 
-##TODO Write GPSR
+    if(ret.length() < n):
+        ret.push(points[ii - 1])
 
+    assert ret.length() == n
 
-def gpsr(points, n, variance, remove_cnt) :
-    resampled = resample(points, n + remove_cnt, variance)
-    print(resampled)
+    def gpsr(points, ret, n, variance, remove_cnt):
+        resampled = resample(points, resampled, n + remove_cnt, variance)
 
-    # Remove random points to simulate cutting corners.
-    for ii in range(remove_cnt):
-        remove_idx = r.randint(start = 0, stop = 65535)
-        remove_idx = math.floor(remove_idx % math.floor(n + remove_cnt - ii))
-        resampled.splice(remove_idx, 1)
-    
+        for ii in range(remove_cnt):
+            remove_idx = r.random * 65535
+            remove_idx = math.floor(remove_idx % math.floor(n + remove_cnt - ii))
 
-    # Construct synthetic variation.
-    m = len(resampled[0])
-    ret = np.zeros(m)
+            resampled.splice(remove_idx, 1)
 
-    for ii in range(1, resample.length):
-        delta = resampled[ii] - resampled[ii - 1]
-        ret[ii] = mathematics.normalize(delta)
-    
+        m = resampled[0].data.length()
+        ret.append(Vector(0,m))
 
-# x = resample(points = np.load('templates/down-1.npy'), n = 6, variance=.1)
-# print(x)
+        for ii in range(resampled.length()):
+            delta = resampled[ii].subtract(resampled[ii - 1])
+            ret.append(delta.normalize())
+
+        return ret
