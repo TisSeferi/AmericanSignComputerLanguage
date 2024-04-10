@@ -87,7 +87,7 @@ class Jackknife:
 
         worst_score = 0.0
 
-        for ii in range(0, 1000):
+        for ii in range(0, 50):
             synthetic.length = 0
 
             for jj in range(0, 2):
@@ -119,11 +119,11 @@ class Jackknife:
                 distributions.append(Distributions(worst_score, 1000))
 
         for tt in range(0, template_cnt):
-            for ii in range(0, 1000):
-                synthetic = mathematics.gpsr(self.templates[tt].sample.trajectory, synthetic, gpsr_n, 0.25, gpsr_r)
+            for ii in range(0, 50):
+                synthetic = mathematics.gpsr(self.templates[tt].sample, synthetic, gpsr_n, 0.25, gpsr_r)
 
                 features = JkFeatures(self.blades, synthetic)
-                score = self.DTW(features.vecs, self.templates[tt].features.vecs)
+                score = self.DTW(features.vecs, self.templates[tt].features.vecs)                
                 distributions[tt].add_positive_score(score)
 
         for tt in range(0, template_cnt):
@@ -150,8 +150,9 @@ class Jackknife:
             else:
                 assert 0
 
-        print("\n\nJK 153 [Score]:")
-        print(cost[v1.size() - 1][v2.size() - 1])
+        # ls
+        # "\n\nJK 153 [Score]:")
+        # print(cost[v1.size() - 1][v2.size() - 1])
         return cost[v1.size() - 1][v2.size() - 1]
 
     def lower_bound(self, vecs, template):
