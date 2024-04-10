@@ -24,6 +24,7 @@ class Jackknife:
     def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
         self.blades = blades
         self.templates = []
+
         for ii, t in enumerate(templates):
             t = mathematics.flatten(t)
             self.add_template(sample = t, id = ii % 5)
@@ -36,27 +37,28 @@ class Jackknife:
         self.templates.append(JkTemplate(self.blades, sample=sample, gid=id))
 
     def classify(self, trajectory):
-        features = JkFeatures(self.blades, trajectory)
-        template_cnt = int(len(self.templates))
 
-        for t in self.templates:
+        if(isinstance(trajectory, self.sample)):
+            return self.classify(trajectory.trajectory)
+
+        features = JkFeatures(self.blades, trajectory)
+        template_cnt = len(self.templates)
+
+        for tt in range(template_cnt):
             cf = 1.0
 
-            if self.blades.cf_abs_distance:
+            if self.blades.cf_abs_distance > 0:
                 cf *= 1.0 / max(
-                    0.01, np.dot(features.abs, t.features.abs)
-                )
+                    0.01, features.abs.dot(self.templates[tt].features.abs))
 
-            if self.blades.cf_bb_widths:
+            if self.blades.cf_bb_widths > 0:
                 cf *= 1.0 / max(
-                    0.01, np.dot(features.bb, t.features.bb)
-                )
+                    0.01, features.bb.dot(self.templates[tt].features.bb))
             
-            t.cf = cf
+            self.templates[tt].cf = cf
 
-            if self.blades.lower_bound:
-                t.lb = cf * self.lower_bound(features.vecs, t)
-
+            if self.blades.lower_bound > 0:
+                self.templates[tt].lb = cf * self.lower_bound(features.vecs, self.templates[tt])
             #TODO sort templates ???
             
         self.templates = sorted(self.templates, key=cmp_to_key(compare_templates))
@@ -83,36 +85,34 @@ class Jackknife:
         return ret
     
     def train(self, gpsr_n, gpsr_r, beta):
-        template_cnt = self.length
+        template_cnt = self.templates.length
         distributions = []
         synthetic = []
 
         worst_score = 0.0
 
         for ii in range(0, 1000):
+            synthetic.length =0
 
             for jj in range (0, 2):
                 tt = math.floor(r.random() * template_cnt % template_cnt)
 
                 s = self.templates[tt].sample
-                length = len(s)
-
-                print("line 99")
-                print(length)
+                length = s.trajectory.length
 
                 start = math.floor(r.random() * (length / 2) % (length / 2))
 
                 for kk in range(0, int(length/2)):
-                    synthetic.append(s[start + kk]) 
+                    synthetic.append(Vector(s.trajectory[start + kk])) 
 
             features = JkFeatures(self.blades, synthetic)
 
             for tt in range(0, template_cnt):
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
-                print("Line 112")
-                print(score)
+
                 if (worst_score < score):
                     worst_score = score
+
                 if (ii > 50):
                     distributions[tt].add_negative_score(score)
             
@@ -137,21 +137,25 @@ class Jackknife:
 
     def DTW (self, v1, v2):
 
-        cost = np.full((len(v1) + 1, len(v2) + 1), np.inf)
-        cost[0][0] = 0.0
+        cost = [None] * (len(v1) + 1)
 
-        print("JK 143 Printing cost matrix")
+        for i in range(0, len(cost)):
+            cost[i] = [None] * (len(v2) + 1)
+
+        for ii in range (0, len(v1)):
+            for jj in range (0, len(v2)):
+                cost[ii][jj] = np.inf
+
+        cost[0][0] = 0.0 
+
         for ii in range(1, len(v1)+1):
             for jj in range(max(1, ii - math.floor(self.blades.radius)), min(len(v2), ii + math.floor(self.blades.radius)) + 1):
-                #dist = Vector.l2norm2(v1[i - 1], v2[j - 1])
-                #TODO: Unknown if correct  
                 cost[ii][jj] = min(min(cost[ii-1][jj], cost[ii][jj-1]), cost[ii-1][jj-1])
-                
-                print(str(ii) + " " + str(jj) + " " + str(cost[ii][jj]))
+
             if (self.blades.inner_product):
-                cost[ii][jj] += 1.0 - np.dot(v1[ii - 1], v2[jj - 1])
+                cost[ii][jj] += 1.0 - v1[ii - 1].dot(v2[jj - 1])
             elif (self.blades.euclidean_distance):
-                cost[ii][jj] += np.sum((v1[ii - 1] - v2[jj - 1]) ** 2)                
+                cost[ii][jj] += v1[ii - 1].l2norm2(v2[jj - 1])                
             else:
                 assert(0)
         
@@ -159,26 +163,27 @@ class Jackknife:
     
     def lower_bound(self, vecs, template):
         lb = 0.0
-        component_cnt = vecs.shape[1]  # Assuming vecs is a list of numpy arrays with shape [n_samples, n_features]
-        for ii, vec in enumerate(vecs):
+        component_cnt = vecs[0].data.length
+        for ii, in range(len(vecs)):
             cost = 0.0
+
             for jj in range(component_cnt):
                 if self.blades.inner_product:
-                    if vec[jj] < 0.0:
-                        cost += vec[jj] * template.lower[ii][jj]
+                    if vecs[ii].data[jj] < 0.0:
+                        cost += vecs[ii].data[jj] * template.lower[ii].data[jj]
                     else:
-                        cost += vec[jj] * template.upper[ii][jj]
+                        cost += vecs[ii].data[jj] * template.upper[ii].data[jj]
                 elif self.blades.euclidean_distance:
                     diff = 0.0
-                    if vec[jj] < template.lower[jj]:
-                        diff = vec[jj] - template.lower[ii][jj]
-                    elif vec[jj] > template.upper[jj]:
-                        diff = vec[jj] - template.upper[ii][jj]
+                    if vecs[ii].data[jj] < template.lower[ii].data[jj]:
+                        diff = vecs[ii].data[jj] - template.lower[ii].data[jj]
+                    elif vecs[ii].data[jj] > template.upper[ii].data[jj]:
+                        diff = vecs[ii].data[jj] - template.upper[ii].data[jj]
                     cost += diff**2
                 else:
                     raise ValueError("Invalid configuration for blades.")
-            inner_prod = bool(self.blades.inner_product)
-            if inner_prod:
+                
+            if self.blades.inner_product:
                 cost = 1.0 - min(1.0, max(-1.0, cost))
 
             lb += cost
@@ -188,12 +193,11 @@ class Jackknife:
 
 class Distributions:
     def __init__(self, max_score, bin_cnt):
-        self.neg = np.zeros((bin_cnt), dtype='f')
-        self.pos = np.zeros((bin_cnt), dtype='f')
+        self.neg = Vector(0, bin_cnt)
+        self.pos = Vector(0, bin_cnt)
         self.max_score = max_score
 
     def bin (self, score):
-        print("JK 193 " + str(self.max_score))
         pt1 = math.floor(score * (len(self.neg) / self.max_score))
         pt2 = len(self.neg) - 1
         return min(pt1, pt2)
@@ -206,16 +210,16 @@ class Distributions:
 
     def rejection_threshold(self, beta):
 
-        self.neg = self.neg / (np.sum(self.neg))
-        self.neg = np.cumsum(self.neg)
-        assert(abs(self.neg[len(self.neg) - 1] - 1.0) < .00001)
+        self.neg = self.neg.divide(self.neg.sum())
+        self.neg = self.neg.cumulative_sum()
+        assert(abs(self.neg.data[self.data.length - 1] - 1.0) < .00001)
 
-        self.pos = self.pos / (np.sum(self.pos))
-        self.pos = np.cumsum(self.pos)
-        assert(abs(self.pos[len(self.pos) - 1] - 1.0) < .00001)
+        self.pos = self.pos.divide(self.pos.sum())
+        self.pos = self.pos.cumulative_sum()
+        assert(abs(self.pos.data[self.pos.data.length - 1] - 1.0) < .00001)
 
         alpha = 1.0 / (1.0 + beta * beta)
-        precision = self.pos / (self.pos + self.neg)
+        precision = self.pos.divide((self.pos.add(self.neg)))
 
         recall = self.pos
 
@@ -224,7 +228,7 @@ class Distributions:
 
         for ii in range(0, len(self.neg)):
             #might need fixing
-            E = (alpha / precision[ii]) + ((1.0 - alpha) / recall[ii])
+            E = (alpha / precision.data[ii]) + ((1.0 - alpha) / recall.data[ii])
             f_score = 1.0 / E
 
             if (f_score > best_score):

@@ -2,7 +2,6 @@ import numpy as np
 from JkBlades import JkBlades
 from JkFeatures import JkFeatures
 import math
-import mathematics
 import Vector
 
 
@@ -10,10 +9,7 @@ class JkTemplate:
     #def __init__(self, blades=JkBlades(), sample=None):
     def __init__(self, blades=JkBlades(), sample=None, gid = None):
         #self.gesture_id = None
-        self.sample = sample
         self.gesture_id = gid
-        self.features = JkFeatures(blades, sample)
-
 
         # TODO Identify gesture IDs
 
@@ -24,13 +20,14 @@ class JkTemplate:
         self.cf = -1.0
 
         self.rejection_threshold = np.inf
+        self.features = JkFeatures(blades, sample)
 
         vecs = self.features.vecs
-        component_cnt = len(vecs[0])
+        component_cnt = len(vecs[0].data)
 
-        for ii, vec in enumerate(vecs):
-            maximum = np.full(component_cnt, -1 * np.inf)
-            minimum = np.full(component_cnt, np.inf)
+        for ii in range(len(vecs)):
+            maximum = Vector(np.inf * -1, component_cnt)
+            minimum = Vector(np.inf, component_cnt)
 
             start = max(0, ii - math.floor(blades.radius))
             end = min(ii + blades.radius + 1, len(vecs))
@@ -38,18 +35,15 @@ class JkTemplate:
             for jj in range(start, end):
                 for kk in range(component_cnt):
                     maximum[kk] = np.maximum(
-                        maximum[kk],
-                        vec[kk])
+                        maximum.data[kk],
+                        vecs[jj].data[kk])
 
-                    minimum[kk] = np.minimum(
-                        minimum[kk],
-                        vec[kk]
+                    minimum.data[kk] = min(
+                        minimum.data[kk],
+                        vecs[jj].data[kk]
                     )
             self.upper.append(maximum)
             self.lower.append(minimum)
-
-        self.lower = np.array(self.lower)
-        self.upper = np.array(self.upper)
 
 def compare_templates(t1, t2):
     return t1.lb < t2.lb
