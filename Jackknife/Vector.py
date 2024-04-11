@@ -152,6 +152,15 @@ class Vector:
         
         print("Not arary")
         return self.size()
+    
+    def remove(self, idx):
+        if isinstance(self.data, np.array):
+            self.data = np.delete(self.data, idx)
+
+        if isinstance(self.data, list):
+            self.data.remove(idx)
+
+        
 
     def interpolate_vectors(a, b, t):
         m = a.size()
