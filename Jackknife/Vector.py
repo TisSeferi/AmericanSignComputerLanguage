@@ -152,7 +152,7 @@ class Vector:
             self.data[ii] = ret
         
     def shape(self):
-        if isinstance(self.data, np.array):
+        if isinstance(self.data, np.ndarray):
             return self.data.shape
         
         print("Not arary")

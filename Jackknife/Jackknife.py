@@ -17,6 +17,7 @@ import random as r
 GPSR_N = 6
 GPSR_R = 2
 BETA = 1.00
+NUM_DIST_SAMPLES = 100
 
 
 class Jackknife:
@@ -82,12 +83,12 @@ class Jackknife:
 
     def train(self, gpsr_n, gpsr_r, beta):
         template_cnt = self.templates.size()
-        distributions = Vector([])
+        distributions = []
         synthetic = Vector([])
 
         worst_score = 0.0
 
-        for ii in range(0, 50):
+        for ii in range(0, NUM_DIST_SAMPLES):
             synthetic.length = 0
 
             for jj in range(0, 2):
@@ -119,10 +120,10 @@ class Jackknife:
                 distributions.append(Distributions(worst_score, 1000))
 
         for tt in range(0, template_cnt):
-            for ii in range(0, 50):
-                synthetic = mathematics.gpsr(self.templates[tt].sample, synthetic, gpsr_n, 0.25, gpsr_r)
-                print("124")
-                print(np.shape(synthetic.data))
+            for ii in range(0, NUM_DIST_SAMPLES):
+                synthetic = mathematics.gpsr(self.templates[tt].sample, gpsr_n, 0.25, gpsr_r)
+                # print("124")
+                # print(str(synthetic.size()))
                 features = JkFeatures(self.blades, synthetic)
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)                
                 distributions[tt].add_positive_score(score)
@@ -206,12 +207,12 @@ class Distributions:
     def rejection_threshold(self, beta):
 
         self.neg = self.neg.divide(self.neg.sum())
-        self.neg = self.neg.cumulative_sum()
-        assert (abs(self.neg.data[self.data.length - 1] - 1.0) < .00001)
+        self.neg.cumulative_sum()
+        assert (abs(self.neg[self.neg.size() - 1] - 1.0) < .00001)
 
         self.pos = self.pos.divide(self.pos.sum())
-        self.pos = self.pos.cumulative_sum()
-        assert (abs(self.pos.data[self.pos.data.length - 1] - 1.0) < .00001)
+        self.pos.cumulative_sum()
+        assert (abs(self.pos[self.pos.size() - 1] - 1.0) < .00001)
 
         alpha = 1.0 / (1.0 + beta * beta)
         precision = self.pos.divide((self.pos.add(self.neg)))
@@ -221,7 +222,7 @@ class Distributions:
         best_score = 0.0
         best_idx = -1
 
-        for ii in range(0, len(self.neg)):
+        for ii in range(0, self.neg.size()):
             # might need fixing
             E = (alpha / precision.data[ii]) + ((1.0 - alpha) / recall.data[ii])
             f_score = 1.0 / E
@@ -231,11 +232,11 @@ class Distributions:
                 best_idx = ii
 
         ret = best_idx + 0.5
-        ret *= self.max_score / len(self.neg)
+        ret *= self.max_score / self.neg.size()
 
         return ret
 
 
 j = Jackknife()
-data = np.load('test.npy')
+data = np.load('../test.npy')
 print(j.classify(data))

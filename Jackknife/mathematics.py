@@ -89,9 +89,6 @@ def resample(points, n=8, variance=None):
     ii = 1
 
     while ii < points.size():        
-        print("Bout to set it off")
-        print(points[ii].data)
-        print(ret[ret.size() - 1])
         distance = points[ii].l2norm(prev)
 
         if distance < remaining_distance:
@@ -124,9 +121,10 @@ def resample(points, n=8, variance=None):
     assert ret.size() == n
     return ret
 
-def gpsr(points, ret, n, variance, remove_cnt):
+def gpsr(points, n, variance, remove_cnt):
+    ret = Vector([])
     resampled = resample(points, n + remove_cnt, variance)
-    print(str(resampled[0].data))
+    # print(str(resampled[0].data))
 
     for ii in range(remove_cnt):
         remove_idx = r.random() * 65535
