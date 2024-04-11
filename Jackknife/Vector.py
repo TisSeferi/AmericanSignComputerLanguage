@@ -50,9 +50,6 @@ class Vector:
     def append(self, val):
         self.data.append(val)
 
-    def length(self):
-        return len(self.data)
-
     def size(self):
         return len(self.data)
 
@@ -157,8 +154,8 @@ class Vector:
         return self.size()
 
     def interpolate_vectors(a, b, t):
-        m = a.length()
-        n = b.length()
+        m = a.size()
+        n = b.size()
 
         data = np.zeros(m)
         for ii in range(0, m):
