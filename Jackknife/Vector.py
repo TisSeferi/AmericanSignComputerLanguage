@@ -161,15 +161,14 @@ class Vector:
             self.data.remove(idx)        
 
     def interpolate_vectors(a, b, t):
-        m = a.length()
-        n = b.length()
-
-        assert(m == n, 'Different sized arrays to interpolate')
+        m = a.size()
+        n = b.size()
 
         data = np.zeros(m)
         for ii in range(0, m):
-            data[ii] = (1.0 - t) * a[ii]
+            data[ii] = (1.0 - t) * a.data[ii]
             data[ii] += t * b[ii]
 
+        return Vector(data)
     
 
