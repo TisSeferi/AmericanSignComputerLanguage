@@ -54,18 +54,18 @@ class Vector:
         return len(self.data)
 
     def element_at(self, idx):
-        return self.data[idx]
+        return self[idx]
 
     def set_all_elements_to(self, rhs):
-        for ii in range(self.length()):
-            self.data[ii] = rhs
+        for ii in range(self.size()):
+            self[ii] = rhs
 
     def negative(self):
-        m = self.length()
+        m = self.size()
 
         vec = Vector(m)
         for ii in range(m):
-            vec.data[ii] = -self.data[ii]
+            vec[ii] = -self[ii]
 
         return vec
 
@@ -92,7 +92,7 @@ class Vector:
         ret = True
 
         for ii in range(m):
-            ret = ret.data[ii] and rhs.data[ii]
+            ret = ret[ii] and rhs[ii]
 
         return ret
 
@@ -101,7 +101,7 @@ class Vector:
         ret = 0
 
         for ii in range(m):
-            ret += (self.data[ii] - other.data[ii]) ** 2
+            ret += (self[ii] - other[ii]) ** 2
 
         return ret
 
@@ -112,7 +112,7 @@ class Vector:
         m = self.length()
         ret = 0
         for ii in range(m):
-            ret += self.data[ii] ** 2
+            ret += self[ii] ** 2
 
         return ret ** .5
 
@@ -120,7 +120,7 @@ class Vector:
         magnitude = self.magnitude()
 
         for ii in range(self.length()):
-            self.data[ii] = self.data[ii] / magnitude
+            self[ii] = self[ii] / magnitude
 
         return self
 
@@ -129,22 +129,22 @@ class Vector:
         ret = 0
 
         for ii in range(self.size()):
-            ret += self.data[ii] * rhs.data[ii]
+            ret += self[ii] * rhs[ii]
 
         return ret
 
     def sum(self):
         ret = 0
         for ii in range(self.length()):
-            ret += self.data[ii]
+            ret += self[ii]
         return ret
 
     def cumulative_sum(self):
         ret = 0
 
         for ii in range(self.length()):
-            ret += self.data[ii]
-            self.data[ii] = ret
+            ret += self[ii]
+            self[ii] = ret
         
     def shape(self):
         if isinstance(self.data, np.array):
@@ -158,9 +158,7 @@ class Vector:
             self.data = np.delete(self.data, idx)
 
         if isinstance(self.data, list):
-            self.data.remove(idx)
-
-        
+            self.data.remove(idx)        
 
     def interpolate_vectors(a, b, t):
         m = a.length()
@@ -170,8 +168,8 @@ class Vector:
 
         data = np.zeros(m)
         for ii in range(0, m):
-            data[ii] = (1.0 - t) * a.data[ii]
-            data[ii] += t * b.data[ii]
+            data[ii] = (1.0 - t) * a[ii]
+            data[ii] += t * b[ii]
 
     
 
