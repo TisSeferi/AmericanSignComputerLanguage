@@ -48,7 +48,11 @@ class Vector:
         return self
 
     def append(self, val):
-        self.data.append(val)
+        if isinstance(self.data, list):
+            self.data.append(val)  
+
+        if isinstance(self.data, np.ndarray):
+            self.data = np.append(self.data, val)
 
     def size(self):
         return len(self.data)
@@ -154,7 +158,7 @@ class Vector:
         return self.size()
     
     def remove(self, idx):
-        if isinstance(self.data, np.array):
+        if isinstance(self.data, np.ndarray):
             self.data = np.delete(self.data, idx)
 
         if isinstance(self.data, list):
