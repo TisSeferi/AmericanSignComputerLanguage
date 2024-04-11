@@ -44,6 +44,9 @@ class Vector:
     def __setitem__(self, idx, val):
         self.data[idx] = val
 
+    def __iter__(self):
+        return self
+
     def append(self, val):
         self.data.append(val)
 
@@ -151,7 +154,7 @@ class Vector:
             return self.data.shape
         
         print("Not arary")
-        return self.shape()
+        return self.size()
 
     def interpolate_vectors(a, b, t):
         m = a.length()
