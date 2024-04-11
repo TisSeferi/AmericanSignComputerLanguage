@@ -10,9 +10,9 @@ class JkFeatures:
         self.pts = points
         self.vecs = Vector([])
 
-        m = points[0].length()
+        m = points[0].size()
         # print(m)
-
+        
         self.pts = mathematics.resample(points=self.pts, n=blades.resample_cnt)
         # print(self.pts)
 

@@ -58,9 +58,10 @@ class Vector:
 
     def set_all_elements_to(self, rhs):
         for ii in range(self.size()):
-            self[ii] = rhs
+            self.data[ii] = rhs
 
     def negative(self):
+        m = self.size()
         m = self.size()
 
         vec = Vector(m)
@@ -88,7 +89,7 @@ class Vector:
         return Vector(self.data * rhs)
 
     def equals(self, rhs):
-        m = self.length()
+        m = self.size()
         ret = True
 
         for ii in range(m):
@@ -97,7 +98,7 @@ class Vector:
         return ret
 
     def l2norm2(self, other):
-        m = self.length()
+        m = self.size()
         ret = 0
 
         for ii in range(m):
@@ -109,7 +110,7 @@ class Vector:
         return self.l2norm2(other) ** .5
 
     def magnitude(self):
-        m = self.length()
+        m = self.size()
         ret = 0
         for ii in range(m):
             ret += self[ii] ** 2
@@ -119,13 +120,13 @@ class Vector:
     def normalize(self):
         magnitude = self.magnitude()
 
-        for ii in range(self.length()):
-            self[ii] = self[ii] / magnitude
+        for ii in range(self.size()):
+            self.data[ii] = self.data[ii] / magnitude
 
         return self
 
     def dot(self, rhs):
-        m = self.length()
+        m = self.size()
         ret = 0
 
         for ii in range(self.size()):
@@ -135,16 +136,16 @@ class Vector:
 
     def sum(self):
         ret = 0
-        for ii in range(self.length()):
-            ret += self[ii]
+        for ii in range(self.size()):
+            ret += self.data[ii]
         return ret
 
     def cumulative_sum(self):
         ret = 0
 
-        for ii in range(self.length()):
-            ret += self[ii]
-            self[ii] = ret
+        for ii in range(self.size()):
+            ret += self.data[ii]
+            self.data[ii] = ret
         
     def shape(self):
         if isinstance(self.data, np.array):
@@ -163,6 +164,8 @@ class Vector:
     def interpolate_vectors(a, b, t):
         m = a.size()
         n = b.size()
+
+        assert(m == n, 'Different sized arrays to interpolate')
 
         data = np.zeros(m)
         for ii in range(0, m):

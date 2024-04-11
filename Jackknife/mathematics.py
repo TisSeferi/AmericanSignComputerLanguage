@@ -29,8 +29,8 @@ def flatten(negative):
 def z_normalize(points):
     # print("math 29")
     # print(points)
-    n = points.length()
-    m = points[0].length()
+    n = points.size()
+    m = points[0].size()
 
     mean = Vector(0.0, m)
     variance = Vector(0.0, m)
@@ -85,11 +85,13 @@ def resample(points, n=8, variance=None):
 
     remaining_distance = path_distance * intervals[0]
     prev = points[0]
-
     ret = Vector([Vector(points[0])])
     ii = 1
 
-    while ii < points.size():
+    while ii < points.size():        
+        print("Bout to set it off")
+        print(points[ii].data)
+        print(ret[ret.size() - 1])
         distance = points[ii].l2norm(prev)
 
         if distance < remaining_distance:
@@ -109,17 +111,17 @@ def resample(points, n=8, variance=None):
         )
 
 
-        if ret.length() == n:
+        if ret.size() == n:
             return ret
 
-        prev = ret[ret.length() - 1]
+        prev = ret[ret.size() - 1]
 
-        remaining_distance = path_distance * intervals.element_at(ret.length() - 1)
+        remaining_distance = path_distance * intervals.element_at(ret.size() - 1)
 
-    if ret.length() < n:
+    if ret.size() < n:
         ret.append(points[ii - 1])
 
-    assert ret.length() == n
+    assert ret.size() == n
     return ret
 
 def gpsr(points, ret, n, variance, remove_cnt):
@@ -132,10 +134,10 @@ def gpsr(points, ret, n, variance, remove_cnt):
 
         resampled.data = np.delete(resampled.data, remove_idx)
 
-    m = resampled[0].length()
+    m = resampled[0].size()
     ret.append(Vector(0, m))
 
-    for ii in range(resampled.length()):
+    for ii in range(resampled.size()):
         delta = resampled[ii].subtract(resampled[ii - 1])
         ret.append(delta.normalize())
 

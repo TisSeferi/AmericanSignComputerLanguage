@@ -26,7 +26,7 @@ class Jackknife:
 
         for ii, t in enumerate(templates):
             self.add_template(sample=Vector(t), gid=ii % 5)
-        self.length = self.templates.length()
+        self.length = self.templates.size()
         self.train(GPSR_N, GPSR_R, BETA)
 
     def add_template(self, sample, gid):
@@ -81,7 +81,7 @@ class Jackknife:
         return ret
 
     def train(self, gpsr_n, gpsr_r, beta):
-        template_cnt = self.templates.length()
+        template_cnt = self.templates.size()
         distributions = Vector([])
         synthetic = Vector([])
 
@@ -94,7 +94,7 @@ class Jackknife:
                 tt = math.floor(r.random() * template_cnt % template_cnt)
 
                 s = self.templates[tt].sample
-                length = s.length()
+                length = s.size()
 
                 start = math.floor(r.random() * (length / 2) % (length / 2))
 
