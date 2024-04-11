@@ -3,6 +3,7 @@ import mediapipe as mp
 import numpy as np
 import time
 import os
+from pathlib import Path
 
 
 USE_DATAFRAMES = False
@@ -17,7 +18,7 @@ BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 BUFFER_LENGTH = BUFFER_FRAMES * NUM_POINTS
 
 RAW_VIDS_FOLDER = '../TestVideos/'
-TEMPLATES = 'C:/Users/n01492932/Desktop/Proj2Gestures/ShellHandManipulation/AmericanSignComputerLanguage/templates/'
+TEMPLATES = str(Path(__file__).resolve().parent.parent / 'templates')
 
 HAND_REF = [
     'wrist',
