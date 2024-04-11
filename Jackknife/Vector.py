@@ -145,12 +145,17 @@ class Vector:
         for ii in range(self.length()):
             ret += self.data[ii]
             self.data[ii] = ret
+        
+    def shape(self):
+        if isinstance(self.data, np.array):
+            return self.data.shape
+        
+        print("Not arary")
+        return self.shape()
 
     def interpolate_vectors(a, b, t):
         m = a.length()
         n = b.length()
-
-        # console.assert(m == n, 'Different sized arrays to interpolate')
 
         data = np.zeros(m)
         for ii in range(0, m):
@@ -158,3 +163,5 @@ class Vector:
             data[ii] += t * b.data[ii]
 
         return Vector(data)
+    
+
