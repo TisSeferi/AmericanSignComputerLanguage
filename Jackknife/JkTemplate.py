@@ -23,9 +23,9 @@ class JkTemplate:
         self.features = JkFeatures(blades, sample)
 
         vecs = self.features.vecs
-        component_cnt = vecs[0].length()
+        component_cnt = vecs[0].size()
 
-        for ii in range(vecs.length()):
+        for ii in range(vecs.size()):
             maximum = Vector(
                 np.full(component_cnt, np.inf * -1)
             )
@@ -34,7 +34,7 @@ class JkTemplate:
             )
 
             start = max(0, ii - math.floor(blades.radius))
-            end = min(ii + blades.radius + 1, vecs.length())
+            end = min(ii + blades.radius + 1, vecs.size())
 
             for jj in range(start, end):
                 for kk in range(component_cnt):
