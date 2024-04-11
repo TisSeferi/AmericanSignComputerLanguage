@@ -121,7 +121,8 @@ class Jackknife:
         for tt in range(0, template_cnt):
             for ii in range(0, 50):
                 synthetic = mathematics.gpsr(self.templates[tt].sample, synthetic, gpsr_n, 0.25, gpsr_r)
-
+                print("124")
+                print(np.shape(synthetic.data))
                 features = JkFeatures(self.blades, synthetic)
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)                
                 distributions[tt].add_positive_score(score)

@@ -163,14 +163,15 @@ class Vector:
         
 
     def interpolate_vectors(a, b, t):
-        m = a.size()
-        n = b.size()
+        m = a.length()
+        n = b.length()
+
+        assert(m == n, 'Different sized arrays to interpolate')
 
         data = np.zeros(m)
         for ii in range(0, m):
             data[ii] = (1.0 - t) * a.data[ii]
             data[ii] += t * b.data[ii]
 
-        return Vector(data)
     
 
