@@ -1,9 +1,14 @@
 import math
+import mathematics
 
 class Vector:
-    def __init__(self, data):
+    def __init__(self, data, cmp_cnt=None):
         if isinstance(data, list):
             self.data = data.copy()
+        elif isinstance(data, int):
+            self.data = [0 for col in range(data)]
+        elif not isinstance(cmp_cnt, None):
+            self.data = [data for col in range(cmp_cnt)]
         elif isinstance(data, Vector):
             self.data = data.data.copy()
 
