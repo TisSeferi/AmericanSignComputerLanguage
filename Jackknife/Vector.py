@@ -54,9 +54,53 @@ class Vector:
         
     def __div__(self, other):
         if isinstance(other, (int, float)):
-            if len(self.data) != len(other.data):
-                raise ValueError("Vectors not same length")
-            return Vector([self.data[ii] * other.data[ii] for ii in range(len(self.data))])
+            return Vector([self.data[i] / other for i in range(len(self.data))])
+        elif isinstance(other, Vector):
+            return Vector([self.data[i] / other.data[i] if other.data[i] != 0 else float('inf') for i in range(len(self.data))])
         else:
             raise TypeError("Unsupported type")
         
+    def magnitude(self):
+        return math.sqrt(sum(x ** 2 for x in self.data))
+
+    def normalize(self):
+        mag = self.magnitude()
+        if mag == 0:
+            raise ValueError("Can't normalize")
+        return Vector([x / mag for x in self.data])
+    
+    def l2norm2(self, other):
+        ret = 0
+
+        for ii in range(self):
+            delta = self.data[ii] - other.data[ii]
+            ret += delta * delta
+
+        return ret
+
+    def l2norm(self):
+        return math.sqrt(self.l2norm2(self))
+    
+    def dot(self, rhs):
+        m = self.length
+        ret = 0
+
+        for ii in range(m):
+            ret += self.data[ii] * rhs.data[ii]
+
+        return ret
+    
+    def sum(self):
+        ret = 0
+
+        for ii in range(self.length):
+            ret += self.data[ii]
+
+        return ret
+    
+    def cumulative_sum(self):
+        ret = 0
+
+        for ii in range(len(self.data)):
+            ret += self.data[ii]
+            self.data[ii] = ret

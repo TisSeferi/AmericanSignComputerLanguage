@@ -18,6 +18,7 @@ def flatten(negative):
 
     shape = (shape[0], dim)
     developed = np.zeros(shape)
+    developed = developed.tolist()
     for index, frame in enumerate(negative):
         developed[index] = frame.flatten()
 
@@ -35,22 +36,22 @@ def z_normalize(points):
     variance = Vector(0.0, m)
 
     for ii in range(n):
-        mean = mean.add(points[ii])
+        mean += points[ii]
 
-    mean = mean.divide(n)
+    mean = mean/n
 
     for ii in range(n):
         for jj in range(m):
-            diff = points[ii].data[jj] - mean.data[jj]
-            variance.data[jj] += diff ** 2
+            diff = points[ii][jj] - mean[jj]
+            variance[jj] += diff ** 2
 
-    variance = variance.divide(n-1)
+    variance = variance/(n-1)
 
     for ii in range(m):
         variance[ii] = variance[ii] ** .5
 
     for ii in range(n):
-        points[ii] = (points[ii].subtract(mean)).divide(variance)
+        points[ii] = (points[ii]-mean)/(variance)
 
     return points
 
@@ -78,7 +79,7 @@ def resample(points, n=8, variance=None):
             rr = r.random()
             intervals.data[ii] = 1.0 + rr * b
 
-        intervals = intervals.divide(intervals.sum())
+        intervals = intervals/intervals.sum()
 
     assert abs(intervals.sum() - 1 < .00001)
 
@@ -129,13 +130,13 @@ def gpsr(points, n, variance, remove_cnt):
         remove_idx = r.random() * 65535
         remove_idx = math.floor(remove_idx % math.floor(n + remove_cnt - ii))
 
-        resampled.data = np.delete(resampled.data, remove_idx)
+        resampled.data = resampled.data.pop(remove_idx)
 
     m = resampled[0].size()
     ret.append(Vector(0, m))
 
     for ii in range(resampled.size()):
-        delta = resampled[ii].subtract(resampled[ii - 1])
+        delta = resampled[ii] - resampled[ii - 1]
         ret.append(delta.normalize())
 
     return ret

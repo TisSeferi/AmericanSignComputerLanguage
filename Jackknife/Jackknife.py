@@ -23,7 +23,7 @@ NUM_DIST_SAMPLES = 100
 class Jackknife:
     def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
         self.blades = blades
-        self.templates = Vector([])
+        self.templates = []
 
         for ii, t in enumerate(templates):
             self.add_template(sample=Vector(t), gid=ii % 5)
@@ -57,7 +57,7 @@ class Jackknife:
             # TODO sort templates ???
 
         self.templates = sorted(self.templates, key=cmp_to_key(compare_templates))
-        best = np.inf
+        best = float('inf')
         ret = -1
 
         for tt in range(0, template_cnt):
@@ -134,7 +134,7 @@ class Jackknife:
         cost = Vector([])
 
         for i in range(0, v1.size() + 1):
-            cost.append(Vector(np.full(v2.size(), np.inf)))
+            cost.append(Vector(v2.size(), float('inf')))
 
         cost[0][0] = 0.0
 
