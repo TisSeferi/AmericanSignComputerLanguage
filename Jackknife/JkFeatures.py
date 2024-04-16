@@ -10,9 +10,9 @@ class JkFeatures:
         self.vecs = Vector([])
 
         m = points[0].size()
-        # print(m)
         
-        self.pts = mathematics.resample(points=self.pts, n=blades.resample_cnt)
+        
+        self.pts = mathematics.resample(points=Vector(self.pts), n=blades.resample_cnt)
         # print(self.pts)
 
         minimum = Vector(self.pts[0])
@@ -23,7 +23,7 @@ class JkFeatures:
         # print(np.shape(self.pts))
 
         for ii in range(1, blades.resample_cnt):
-            vec = self.pts[ii].subtract(self.pts[ii - 1])
+            vec = self.pts[ii] - self.pts[ii - 1]
 
             for jj in range(m):
                 self.abs[jj] += abs(vec[jj])
@@ -47,4 +47,4 @@ class JkFeatures:
             self.vecs = mathematics.z_normalize(self.vecs)
 
         self.abs.normalize()
-        self.bb = maximum.subtract(minimum).normalize
+        self.bb = (maximum - minimum).normalize()

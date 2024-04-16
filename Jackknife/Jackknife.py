@@ -17,7 +17,8 @@ import random as r
 GPSR_N = 6
 GPSR_R = 2
 BETA = 1.00
-NUM_DIST_SAMPLES = 100
+BINS = 1000
+NUM_DIST_SAMPLES = 250
 
 
 class Jackknife:
@@ -26,8 +27,9 @@ class Jackknife:
         self.templates = []
 
         for ii, t in enumerate(templates):
-            self.add_template(sample=Vector(t), gid=ii % 5)
-        self.length = self.templates.size()
+            temp = mathematics.flatten(t)
+            self.add_template(sample=Vector(temp), gid=ii % 5)
+        self.length = len(self.templates)
         self.train(GPSR_N, GPSR_R, BETA)
 
     def add_template(self, sample, gid):
@@ -80,7 +82,7 @@ class Jackknife:
         return ret
 
     def train(self, gpsr_n, gpsr_r, beta):
-        template_cnt = self.templates.size()
+        template_cnt = len(self.templates)
         distributions = []
         synthetic = Vector([])
 
@@ -115,7 +117,7 @@ class Jackknife:
                 continue
 
             for tt in range(0, template_cnt):
-                distributions.append(Distributions(worst_score, 1000))
+                distributions.append(Distributions(worst_score, BINS))
 
         for tt in range(0, template_cnt):
             for ii in range(0, NUM_DIST_SAMPLES):
@@ -197,6 +199,7 @@ class Distributions:
         return min(pt1, pt2)
 
     def add_negative_score(self, score):
+        print(self.bin(score))
         self.neg[self.bin(score)] += 1
 
     def add_positive_score(self, score):

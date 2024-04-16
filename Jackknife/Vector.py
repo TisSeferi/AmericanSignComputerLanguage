@@ -1,5 +1,5 @@
 import math
-import mathematics
+import numbers
 
 class Vector:
     def __init__(self, data, cmp_cnt=None):
@@ -7,7 +7,7 @@ class Vector:
             self.data = data.copy()
         elif isinstance(data, int):
             self.data = [0 for col in range(data)]
-        elif not isinstance(cmp_cnt, None):
+        elif isinstance(data, numbers.Number) and isinstance(cmp_cnt, numbers.Number):
             self.data = [data for col in range(cmp_cnt)]
         elif isinstance(data, Vector):
             self.data = data.data.copy()
@@ -72,17 +72,17 @@ class Vector:
     def l2norm2(self, other):
         ret = 0
 
-        for ii in range(self):
+        for ii in range(self.size()):
             delta = self.data[ii] - other.data[ii]
             ret += delta * delta
 
         return ret
 
-    def l2norm(self):
-        return math.sqrt(self.l2norm2(self))
+    def l2norm(self, other):
+        return math.sqrt(self.l2norm2(other))
     
     def dot(self, rhs):
-        m = self.length
+        m = self.size()
         ret = 0
 
         for ii in range(m):
@@ -93,14 +93,21 @@ class Vector:
     def sum(self):
         ret = 0
 
-        for ii in range(self.length):
+        for ii in range(self.size()):
             ret += self.data[ii]
 
         return ret
     
+    def append(self, value):
+        self.data.append(value)
+
     def cumulative_sum(self):
         ret = 0
 
         for ii in range(len(self.data)):
             ret += self.data[ii]
             self.data[ii] = ret
+
+    def set_all_elements_to(self, value):
+        for ii in range(len(self.data)):
+            self.data[ii] = value

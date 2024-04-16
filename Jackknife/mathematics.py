@@ -17,12 +17,9 @@ def flatten(negative):
         dim *= shape[i]
 
     shape = (shape[0], dim)
-    developed = np.zeros(shape)
-    developed = developed.tolist()
+    developed = []
     for index, frame in enumerate(negative):
-        developed[index] = frame.flatten()
-
-    developed = developed.tolist()
+        developed.append(Vector(frame.flatten().tolist()))
     return developed
 
 
@@ -102,7 +99,7 @@ def resample(points, n=8, variance=None):
             ratio = 1.0
 
         ret.append(
-            Vector.interpolate_vectors(
+            Vector.interpolate(
                 prev, points[ii], ratio
             )
         )
@@ -113,7 +110,7 @@ def resample(points, n=8, variance=None):
 
         prev = ret[ret.size() - 1]
 
-        remaining_distance = path_distance * intervals.element_at(ret.size() - 1)
+        remaining_distance = path_distance * intervals[(ret.size() - 1)]
 
     if ret.size() < n:
         ret.append(points[ii - 1])
