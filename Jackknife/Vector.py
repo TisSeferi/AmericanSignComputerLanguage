@@ -1,181 +1,48 @@
-import numpy as np
-
-
-def vector_flatten(negative):
-    shape = np.shape(negative)
-    dimensions = len(shape)
-
-    if dimensions < 3:
-        #print("Cannot flatten")
-        return negative
-
-    dim = 1
-    for i in range(1, dimensions):
-        dim *= shape[i]
-
-    developed = []
-    for index, frame in enumerate(negative):
-        developed.append(Vector(frame.flatten()))
-
-    # print(len(np.shape(developed)))
-    return developed
-
+import math
 
 class Vector:
-    def __init__(self, x, size=None):
-        self.data = [None]
-        if isinstance(x, Vector):
-            self.data = x.data.copy()
-        elif isinstance(x, list):
-            self.data = x
-        elif isinstance(x, np.ndarray):
-            self.data = vector_flatten(x)
-        elif isinstance(x, (int, float)) and size is not None:
-            self.data = np.full(size, x, dtype=float)
-        elif isinstance(x, int) and size is None:
-            self.data = np.zeros(x, dtype=float)
-        else:
-            self.data = x
-            # raise ValueError("Invalid initialization parameters for Vector.")
+    def __init__(self, data):
+        if isinstance(data, list):
+            self.data = data.copy()
+        elif isinstance(data, Vector):
+            self.data = data.data.copy()
 
-    def __getitem__(self, idx):
-        return self.data[idx]
-
-    def __setitem__(self, idx, val):
-        self.data[idx] = val
-
-    def __iter__(self):
-        return self
-
-    def append(self, val):
-        if isinstance(self.data, list):
-            self.data.append(val)  
-
-        if isinstance(self.data, np.ndarray):
-            self.data = np.append(self.data, val)
+    
+    @staticmethod
+    def interpolate(a, b, t):
+        if len(a.data) != len(b.data):
+            raise ValueError("Vectors not same length")
+        return Vector([(1-t) * a.data[i] + t * b.data[i] for i in range(len(a.data))])
 
     def size(self):
         return len(self.data)
-
-    def element_at(self, idx):
-        return self[idx]
-
-    def set_all_elements_to(self, rhs):
-        for ii in range(self.size()):
-            self.data[ii] = rhs
-
-    def negative(self):
-        m = self.size()
-        m = self.size()
-
-        vec = Vector(m)
-        for ii in range(m):
-            vec[ii] = -self[ii]
-
-        return vec
-
-    def add(self, rhs):
-        return Vector(self.data + rhs.data)
-
-    def subtract(self, rhs):
-        return Vector(self.data - rhs.data)
-
-    def divide(self, rhs):
-        if isinstance(rhs, Vector):
-            rhs = rhs.data
-
-        return Vector(self.data / rhs)
-
-    def multiply(self, rhs):
-        if isinstance(rhs, Vector):
-            rhs = rhs.data
-
-        return Vector(self.data * rhs)
-
-    def equals(self, rhs):
-        m = self.size()
-        ret = True
-
-        for ii in range(m):
-            ret = ret[ii] and rhs[ii]
-
-        return ret
-
-    def l2norm2(self, other):
-        m = self.size()
-        ret = 0
-
-        for ii in range(m):
-            ret += (self[ii] - other[ii]) ** 2
-
-        return ret
-
-    def l2norm(self, other):
-        return self.l2norm2(other) ** .5
-
-    def magnitude(self):
-        m = self.size()
-        ret = 0
-        for ii in range(m):
-            ret += self[ii] ** 2
-
-        return ret ** .5
-
-    def normalize(self):
-        magnitude = self.magnitude()
-
-        for ii in range(self.size()):
-            self.data[ii] = self.data[ii] / magnitude
-
-        return self
-
-    def dot(self, rhs):
-        m = self.size()
-        ret = 0
-
-        for ii in range(self.size()):
-            ret += self[ii] * rhs[ii]
-
-        return ret
-
-    def sum(self):
-        ret = 0
-        for ii in range(self.size()):
-            ret += self.data[ii]
-        return ret
-
-    def cumulative_sum(self):
-        ret = 0
-
-        for ii in range(self.size()):
-            ret += self.data[ii]
-            self.data[ii] = ret
-        
-    def shape(self):
-        if isinstance(self.data, np.ndarray):
-            return self.data.shape
-        
-        print("Not arary")
-        return self.size()
     
-    def remove(self, idx):
-        if isinstance(self.data, np.ndarray):
-            self.data = np.delete(self.data, idx)
-
-        if isinstance(self.data, list):
-            self.data.remove(idx)        
-
-    def interpolate_vectors(a, b, t):
-        m = a.size()
-        n = b.size()
-
-        assert(m == n, 'Different sized arrays to interpolate')
-
-        data = np.zeros(m)
-        for ii in range(0, m):
-            data[ii] = (1.0 - t) * a.data[ii]
-            data[ii] += t * b[ii]
-
-        return Vector(data)
+    def __getitem__(self, index):
+        return self.data[index]
     
-
+    def __setitem__(self, index, value):
+        self.data[index] = value
+    
+    def __add__(self, other):
+        if isinstance(other, Vector):
+            if len(self.data) != len(other.data):
+                raise ValueError("Vectors not same length")
+            return Vector([self.data[ii] + other.data[ii] for ii in range(len(self.data))])
+        else:
+            raise TypeError("Unsupported type")
+            
+    def __sub__(self, other):
+        if isinstance(other, Vector):
+            if len(self.data) != len(other.data):
+                raise ValueError("Vectors not same length")
+            return Vector([self.data[ii] - other.data[ii] for ii in range(len(self.data))])
+        else:
+            raise TypeError("Unsupported type")
+        
+    def __mul__(self, other):
+        if isinstance(other, Vector):
+            if len(self.data) != len(other.data):
+                raise ValueError("Vectors not same length")
+            return Vector([self.data[ii] * other.data[ii] for ii in range(len(self.data))])
+        else:
+            raise TypeError("Unsupported type")
