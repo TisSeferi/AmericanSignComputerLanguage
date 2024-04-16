@@ -35,8 +35,6 @@ class Jackknife:
 
     def classify(self, trajectory):
 
-        if isinstance(trajectory, self.sample):
-            return self.classify(trajectory.trajectory)
 
         features = JkFeatures(self.blades, trajectory)
         template_cnt = len(self.templates)
