@@ -1,5 +1,4 @@
 import FeedData as fd
-import numpy as np
 from JkBlades import JkBlades
 from Vector import Vector
 import mathematics

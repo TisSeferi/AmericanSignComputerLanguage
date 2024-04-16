@@ -1,4 +1,3 @@
-import numpy as np
 from JkBlades import JkBlades
 from JkFeatures import JkFeatures
 import math

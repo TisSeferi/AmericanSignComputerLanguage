@@ -1,7 +1,6 @@
-import numpy as np
 import random as r
 from Vector import Vector 
-
+import numpy as np
 import math
 
 
@@ -23,7 +22,7 @@ def flatten(negative):
     for index, frame in enumerate(negative):
         developed[index] = frame.flatten()
 
-    # print(len(np.shape(developed)))
+    developed = developed.tolist()
     return developed
 
 

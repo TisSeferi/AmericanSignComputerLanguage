@@ -46,3 +46,12 @@ class Vector:
             return Vector([self.data[ii] * other.data[ii] for ii in range(len(self.data))])
         else:
             raise TypeError("Unsupported type")
+        
+    def __div__(self, other):
+        if isinstance(other, (int, float)):
+            if len(self.data) != len(other.data):
+                raise ValueError("Vectors not same length")
+            return Vector([self.data[ii] * other.data[ii] for ii in range(len(self.data))])
+        else:
+            raise TypeError("Unsupported type")
+        
