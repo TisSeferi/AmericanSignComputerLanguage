@@ -64,8 +64,38 @@ class Vector:
             raise ValueError("Can't normalize")
         return Vector([x / mag for x in self.data])
     
-    def l2norm2
-    
+    def l2norm2(self, other):
+        ret = 0
+
+        for ii in range(self):
+            delta = self.data[ii] - other.data[ii]
+            ret += delta * delta
+
+        return ret
+
     def l2norm(self):
         return math.sqrt(self.l2norm2(self))
     
+    def dot(self, rhs):
+        m = self.length
+        ret = 0
+
+        for ii in range(m):
+            ret += self.data[ii] * rhs.data[ii]
+
+        return ret
+    
+    def sum(self):
+        ret = 0
+
+        for ii in range(self.length):
+            ret += self.data[ii]
+
+        return ret
+    
+    def cumulative_sum(self):
+        ret = 0
+
+        for ii in range(len(self.data)):
+            ret += self.data[ii]
+            self.data[ii] = ret
