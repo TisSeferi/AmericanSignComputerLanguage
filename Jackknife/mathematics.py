@@ -22,6 +22,8 @@ def flatten(negative):
     for index, frame in enumerate(negative):
         developed[index] = frame.flatten()
 
+    developed = developed.tolist()
+    print(developed)
     # print(len(np.shape(developed)))
     return developed
 
