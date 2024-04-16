@@ -1,4 +1,3 @@
-import numpy as np
 import random as r
 from Vector import Vector 
 
