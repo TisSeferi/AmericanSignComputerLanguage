@@ -111,6 +111,7 @@ class Jackknife:
                     worst_score = score
 
                 if ii > 50:
+                    print(distributions[tt].neg[0])
                     distributions[tt].add_negative_score(score)
 
             if ii != 50:
@@ -159,7 +160,7 @@ class Jackknife:
 
     def lower_bound(self, vecs, template):
         lb = 0.0
-        component_cnt = vecs[0].data.length
+        component_cnt = vecs[0].size()
         for ii, in range(len(vecs)):
             cost = 0.0
 
