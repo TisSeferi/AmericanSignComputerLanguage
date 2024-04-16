@@ -18,26 +18,22 @@ class JkTemplate:
         self.lb = -1.0
         self.cf = 1.0
 
-        self.rejection_threshold = np.inf
+        self.rejection_threshold = float('inf')
         self.features = JkFeatures(blades, sample)
 
         vecs = self.features.vecs
         component_cnt = vecs[0].size()
 
         for ii in range(vecs.size()):
-            maximum = Vector(
-                np.full(component_cnt, np.inf * -1)
-            )
-            minimum = Vector(
-                np.full(component_cnt, np.inf)
-            )
+            maximum = Vector(component_cnt, float('inf') * -1)
+            minimum = Vector(component_cnt, float('inf'))
 
             start = max(0, ii - math.floor(blades.radius))
             end = min(ii + blades.radius + 1, vecs.size())
 
             for jj in range(start, end):
                 for kk in range(component_cnt):
-                    maximum[kk] = np.maximum(
+                    maximum[kk] = max(
                         maximum.data[kk],
                         vecs[jj].data[kk])
 
