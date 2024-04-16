@@ -25,8 +25,8 @@ class JkTemplate:
         component_cnt = vecs[0].size()
 
         for ii in range(vecs.size()):
-            maximum = Vector(component_cnt, float('inf') * -1)
-            minimum = Vector(component_cnt, float('inf'))
+            maximum = Vector(float('inf') * -1, component_cnt)
+            minimum = Vector(float('inf'), component_cnt)
 
             start = max(0, ii - math.floor(blades.radius))
             end = min(ii + blades.radius + 1, vecs.size())
