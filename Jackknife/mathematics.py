@@ -121,7 +121,6 @@ def resample(points, n=8, variance=None):
 def gpsr(points, n, variance, remove_cnt):
     ret = Vector([])
     resampled = resample(points, n + remove_cnt, variance)
-    # print(str(resampled[0].data))
 
     for ii in range(remove_cnt):
         remove_idx = r.random() * 65535

@@ -17,7 +17,7 @@ import random as r
 GPSR_N = 6
 GPSR_R = 2
 BETA = 1.00
-BINS = 500
+BINS = 1000
 NUM_DIST_SAMPLES = 250
 
 
@@ -36,8 +36,6 @@ class Jackknife:
         self.templates.append(JkTemplate(self.blades, sample=sample, gid=gid))
 
     def classify(self, trajectory):
-
-
         features = JkFeatures(self.blades, trajectory)
         template_cnt = len(self.templates)
 
@@ -61,23 +59,24 @@ class Jackknife:
         self.templates = sorted(self.templates, key=cmp_to_key(compare_templates))
         best = float('inf')
         ret = -1
-
+        
         for tt in range(0, template_cnt):
 
-            if self.templates[tt].lb > self.templates[tt].rejection_threshold:
-                continue
-            if self.templates[tt].lb > best:
-                continue
+            # if self.templates[tt].lb > self.templates[tt].rejection_threshold:
+            #     continue
+            # if self.templates[tt].lb > best:
+            #     continue
 
             score = self.templates[tt].cf
-
+            
             score *= self.DTW(features.vecs, self.templates[tt].features.vecs)
-
-            if (score > self.templates[tt].rejection_threshold):
-                continue
+            print(str(self.templates[tt].gesture_id) + " " + str(score))
+            # if (score > self.templates[tt].rejection_threshold):
+            #     continue
             if (score < best):
                 best = score
                 ret = self.templates[tt].gesture_id
+                
 
         return ret
 
