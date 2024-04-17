@@ -106,12 +106,10 @@ class Jackknife:
 
             for tt in range(0, template_cnt):
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
-                print(score)
                 if worst_score < score:
                     worst_score = score
 
                 if ii > 50:
-                    print(distributions[tt].neg[0])
                     distributions[tt].add_negative_score(score)
 
             if ii != 50:
@@ -119,6 +117,7 @@ class Jackknife:
 
             for tt in range(0, template_cnt):
                 distributions.append(Distributions(worst_score, BINS))
+                
 
         for tt in range(0, template_cnt):
             for ii in range(0, NUM_DIST_SAMPLES):
@@ -190,8 +189,8 @@ class Jackknife:
 
 class Distributions:
     def __init__(self, max_score, bin_cnt):
-        self.neg = Vector(0, bin_cnt)
-        self.pos = Vector(0, bin_cnt)
+        self.neg = Vector(0.0, bin_cnt)
+        self.pos = Vector(0.0, bin_cnt)
         self.max_score = max_score
 
     def bin(self, score):
@@ -200,7 +199,6 @@ class Distributions:
         return min(pt1, pt2)
 
     def add_negative_score(self, score):
-        print(self.bin(score))
         self.neg[self.bin(score)] += 1
 
     def add_positive_score(self, score):
@@ -208,16 +206,16 @@ class Distributions:
 
     def rejection_threshold(self, beta):
 
-        self.neg = self.neg.divide(self.neg.sum())
+        self.neg = self.neg.__div__(self.neg.sum())
         self.neg.cumulative_sum()
         assert (abs(self.neg[self.neg.size() - 1] - 1.0) < .00001)
 
-        self.pos = self.pos.divide(self.pos.sum())
+        self.pos = self.pos.__div__(self.pos.sum())
         self.pos.cumulative_sum()
         assert (abs(self.pos[self.pos.size() - 1] - 1.0) < .00001)
 
         alpha = 1.0 / (1.0 + beta * beta)
-        precision = self.pos.divide((self.pos.add(self.neg)))
+        precision = self.pos.__div__((self.pos + self.neg))
 
         recall = self.pos
 

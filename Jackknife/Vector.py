@@ -1,5 +1,4 @@
 import math
-import numbers
 
 class Vector:
     def __init__(self, data, cmp_cnt=None):
@@ -7,7 +6,7 @@ class Vector:
             self.data = data.copy()
         elif isinstance(data, int):
             self.data = [0 for col in range(data)]
-        elif isinstance(data, numbers.Number) and isinstance(cmp_cnt, numbers.Number):
+        elif isinstance(data, (int, float)) and isinstance(cmp_cnt, (int, float)):
             self.data = [data for col in range(cmp_cnt)]
         elif isinstance(data, Vector):
             self.data = data.data.copy()
@@ -111,3 +110,6 @@ class Vector:
     def set_all_elements_to(self, value):
         for ii in range(len(self.data)):
             self.data[ii] = value
+
+    def pop(self, index=-1):
+        return self.data.pop(index)

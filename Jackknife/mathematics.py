@@ -76,7 +76,7 @@ def resample(points, n=8, variance=None):
             rr = r.random()
             intervals.data[ii] = 1.0 + rr * b
 
-        intervals = intervals/intervals.sum()
+        intervals = intervals.__div__(intervals.sum())
 
     assert abs(intervals.sum() - 1 < .00001)
 
@@ -127,10 +127,10 @@ def gpsr(points, n, variance, remove_cnt):
         remove_idx = r.random() * 65535
         remove_idx = math.floor(remove_idx % math.floor(n + remove_cnt - ii))
 
-        resampled.data = resampled.data.pop(remove_idx)
+        resampled.pop(remove_idx)
 
     m = resampled[0].size()
-    ret.append(Vector(0, m))
+    ret.append(Vector(0.0, m))
 
     for ii in range(resampled.size()):
         delta = resampled[ii] - resampled[ii - 1]
