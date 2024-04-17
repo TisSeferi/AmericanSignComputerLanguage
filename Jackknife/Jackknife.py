@@ -106,7 +106,7 @@ class Jackknife:
 
             for tt in range(0, template_cnt):
                 score = self.DTW(features.vecs, self.templates[tt].features.vecs)
-
+                print(score)
                 if worst_score < score:
                     worst_score = score
 

@@ -35,20 +35,20 @@ def z_normalize(points):
     for ii in range(n):
         mean += points[ii]
 
-    mean = mean/n
+    mean = mean.__div__(n)
 
     for ii in range(n):
         for jj in range(m):
             diff = points[ii][jj] - mean[jj]
             variance[jj] += diff ** 2
 
-    variance = variance/(n-1)
+    variance = variance.__div__(n-1)
 
     for ii in range(m):
         variance[ii] = variance[ii] ** .5
 
     for ii in range(n):
-        points[ii] = (points[ii]-mean)/(variance)
+        points[ii] = (points[ii]-mean).__div__(variance)
 
     return points
 
