@@ -17,7 +17,7 @@ import random as r
 GPSR_N = 6
 GPSR_R = 2
 BETA = 1.00
-BINS = 1000
+BINS = 500
 NUM_DIST_SAMPLES = 250
 
 
@@ -160,7 +160,7 @@ class Jackknife:
     def lower_bound(self, vecs, template):
         lb = 0.0
         component_cnt = vecs[0].size()
-        for ii, in range(len(vecs)):
+        for ii in range(vecs.size()):
             cost = 0.0
 
             for jj in range(component_cnt):
@@ -189,8 +189,8 @@ class Jackknife:
 
 class Distributions:
     def __init__(self, max_score, bin_cnt):
-        self.neg = Vector(0.0, bin_cnt)
-        self.pos = Vector(0.0, bin_cnt)
+        self.neg = Vector(0.00000001, bin_cnt)
+        self.pos = Vector(0.00000001, bin_cnt)
         self.max_score = max_score
 
     def bin(self, score):
@@ -238,5 +238,5 @@ class Distributions:
 
 
 j = Jackknife()
-data = np.load('../test.npy')
-print(j.classify(data))
+data = np.load('test.npy')
+print(j.classify(mathematics.flatten(data)))
