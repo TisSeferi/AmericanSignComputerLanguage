@@ -1,4 +1,4 @@
-import FeedData as fd
+#import FeedData as fd
 from functools import cmp_to_key
 import numpy as np
 import math
@@ -22,7 +22,8 @@ NUM_DIST_SAMPLES = 250
 
 
 class Jackknife:
-    def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
+    #def __init__(self, blades=JkBlades(), templates=fd.assemble_templates()):
+    def __init__(self, blades=JkBlades(), templates=None):
         self.blades = blades
         self.templates = []
 
@@ -36,6 +37,7 @@ class Jackknife:
         self.templates.append(JkTemplate(self.blades, sample=sample, gid=gid))
 
     def classify(self, trajectory):
+        trajectory = mathematics.flatten(trajectory)
         features = JkFeatures(self.blades, trajectory)
         template_cnt = len(self.templates)
 
@@ -236,6 +238,6 @@ class Distributions:
         return ret
 
 
-j = Jackknife()
-data = np.load('test.npy')
-print(j.classify(mathematics.flatten(data)))
+#j = Jackknife()
+#data = np.load('test.npy')
+#print(j.classify(mathematics.flatten(data)))

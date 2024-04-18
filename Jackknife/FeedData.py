@@ -3,15 +3,21 @@ import mediapipe as mp
 import numpy as np
 import time
 import os
+import Jackknife as jk
 from pathlib import Path
 
 
+X = 0
+Y = 1
+
 USE_DATAFRAMES = False
 NUM_POINTS = 21
+DIMS = 2
+NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 CV2_RESIZE = (640, 480)
 
-BUFFER_WINDOW = 10  # In seconds
+BUFFER_WINDOW = 2  # In seconds
 BUFFER_FPS = 30  # TODO Fix for variable framerate cameras
 BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
@@ -32,6 +38,15 @@ HAND_REF = [
 
 def euclidean_dist(self, df1, df2, cols=['x', 'y']):
     return np.linalg.norm(df1[cols].values - df2[cols].values, axis=1)
+
+def assemble_templates():
+    templates = []
+    for path in os.listdir(TEMPLATES):
+        p = np.load(TEMPLATES + '/' + path)
+        templates.append(np.load(TEMPLATES + '/' + path))
+
+    
+    return templates
 
 
 def process_video(video_name):
@@ -88,7 +103,7 @@ def process_video(video_name):
 
 def live_process():
     cap = cv2.VideoCapture(0)
-    recognizer = jk()
+    recognizer = jk.Jackknife(templates = assemble_templates())
 
     if not cap.isOpened():
         print("Error: Failed to open File.")
@@ -99,11 +114,14 @@ def live_process():
     hands = mp.solutions.hands.Hands()
 
     # The list for returning the dataframes
-    data = np.zeros((BUFFER_LENGTH, 2))
+    #data = np.zeros((BUFFER_LENGTH, 2))
+    data = np.zeros((BUFFER_LENGTH, NUM_POINTS, DIMS))
     frame = 0
 
     success, img = cap.read()
     while success:
+    # while frame < BUFFER_FRAMES - 1:
+    # For running one recognition instance
         if not success:
             print("Error in reading!")
             cap.release()
@@ -124,15 +142,18 @@ def live_process():
                     # Convert landmarks to dataframe
                     points = handLms.landmark
                     for ii, lm in enumerate(points):
-                        data[frame * NUM_POINTS + ii][0] = lm.x
-                        data[frame * NUM_POINTS + ii][1] = lm.y
+                        data[frame][ii][X] = lm.x
+                        data[frame][ii][Y] = lm.y
         else:
             for ii in range(NUM_POINTS):
-                data[frame * NUM_POINTS + ii][0] = -1
-                data[frame * NUM_POINTS + ii][1] = -1
+                data[frame][ii][X] = -1
+                data[frame][ii][Y] = -1
 
+        if frame == BUFFER_FRAMES - 1:
+            print("\n\n\nID:")
+            print(recognizer.classify(data))
         frame = (frame + 1) % BUFFER_FRAMES
-        recognizer.classify(data)
+        
 
         success, img = cap.read()
 
@@ -155,14 +176,7 @@ def extract_from_videos():
         save_template(path)
 
 
-def assemble_templates():
-    templates = []
-    for path in os.listdir(TEMPLATES):
-        p = np.load(TEMPLATES + '/' + path)
-        templates.append(np.load(TEMPLATES + '/' + path))
 
-    
-    return templates
 
 #extract_from_videos()
 # print('Running Recognition')
@@ -175,3 +189,5 @@ def assemble_templates():
 # 
 # t = time.time() - t
 # print('Elapsed Time: ' + "%.2f" % t)
+
+live_process()

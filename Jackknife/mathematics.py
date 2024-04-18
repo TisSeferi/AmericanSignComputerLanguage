@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 
+
 def flatten(negative):
     shape = np.shape(negative)
     dimensions = len(shape)
@@ -136,3 +137,5 @@ def gpsr(points, n, variance, remove_cnt):
         ret.append(delta.normalize())
 
     return ret
+
+

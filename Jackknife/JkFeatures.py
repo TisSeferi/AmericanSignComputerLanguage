@@ -1,4 +1,3 @@
-import FeedData as fd
 from JkBlades import JkBlades
 from Vector import Vector
 import mathematics
