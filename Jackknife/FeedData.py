@@ -18,7 +18,7 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 CV2_RESIZE = (640, 480)
 
-BUFFER_WINDOW = 1  # In seconds
+BUFFER_WINDOW = 2 # In seconds
 BUFFER_FPS = 30  # TODO Fix for variable framerate cameras
 BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
@@ -151,9 +151,10 @@ def live_process():
                 data[frame][ii][X] = -1
                 data[frame][ii][Y] = -1
 
-        info = data.copy
-        t1 = threading.Thread(target = recognizer.classify, args = info)
-        t1.start()
+        if frame == BUFFER_FRAMES - 1:
+            print()
+            t1 = threading.Thread(target = print, args = (recognizer.classify(data.copy()),))
+            t1.start()
         frame = (frame + 1) % BUFFER_FRAMES
         
 
@@ -173,13 +174,23 @@ def save_template(path):
     print(TEMPLATES + "/" + name)
     # print(data)
 
+def save_test(path):
+    name = path.split('.')[0]
+    data = process_video(path)
+    np.save(name, data)
 
 def extract_from_videos():
     for path in os.listdir(RAW_VIDS_FOLDER):
         save_template(path)
 
+def classify_example(test):
+    recognizer = jk.Jackknife(templates = assemble_templates())
+    print(recognizer.classify(test))
 
 
+
+#save_test('test.mp4')
+classify_example(process_video('test .mp4'))
 
 #extract_from_videos()
 # print('Running Recognition')
@@ -192,6 +203,7 @@ def extract_from_videos():
 # 
 # t = time.time() - t
 # print('Elapsed Time: ' + "%.2f" % t)
+#extract_from_videos()
 
-live_process()
+#live_process()
 #print(assemble_templates())
