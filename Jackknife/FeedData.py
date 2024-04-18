@@ -5,6 +5,7 @@ import time
 import os
 import Jackknife as jk
 from pathlib import Path
+import threading
 
 
 X = 0
@@ -17,13 +18,13 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 CV2_RESIZE = (640, 480)
 
-BUFFER_WINDOW = 2  # In seconds
+BUFFER_WINDOW = 1  # In seconds
 BUFFER_FPS = 30  # TODO Fix for variable framerate cameras
 BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
 BUFFER_LENGTH = BUFFER_FRAMES * NUM_POINTS
 
-RAW_VIDS_FOLDER = '../TestVideos/'
+RAW_VIDS_FOLDER = 'TestVideos/'
 TEMPLATES = str(Path(__file__).resolve().parent.parent / 'templates')
 
 HAND_REF = [
@@ -43,7 +44,8 @@ def assemble_templates():
     templates = []
     for path in os.listdir(TEMPLATES):
         p = np.load(TEMPLATES + '/' + path)
-        templates.append(np.load(TEMPLATES + '/' + path))
+        name = path.split('.')[0]
+        templates.append((name, np.load(TEMPLATES + '/' + path)))
 
     
     return templates
@@ -149,9 +151,9 @@ def live_process():
                 data[frame][ii][X] = -1
                 data[frame][ii][Y] = -1
 
-        if frame == BUFFER_FRAMES - 1:
-            print("\n\n\nID:")
-            print(recognizer.classify(data))
+        info = data.copy
+        t1 = threading.Thread(target = recognizer.classify, args = info)
+        t1.start()
         frame = (frame + 1) % BUFFER_FRAMES
         
 
@@ -164,10 +166,11 @@ def live_process():
 # Web processing test
 # Process_Video('https://www.pexels.com/download/video/3959694/')
 def save_template(path):
-    name = path.split('.')[0] + '-' + path.split('.')[1]
+    name = path.split('.')[0]
     path = RAW_VIDS_FOLDER + path
     data = process_video(path)
-    np.save(TEMPLATES + name, data)
+    np.save(TEMPLATES + "/" + name, data)
+    print(TEMPLATES + "/" + name)
     # print(data)
 
 
@@ -191,3 +194,4 @@ def extract_from_videos():
 # print('Elapsed Time: ' + "%.2f" % t)
 
 live_process()
+#print(assemble_templates())

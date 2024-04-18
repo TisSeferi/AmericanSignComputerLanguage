@@ -28,8 +28,9 @@ class Jackknife:
         self.templates = []
 
         for ii, t in enumerate(templates):
-            temp = mathematics.flatten(t)
-            self.add_template(sample=Vector(temp), gid=math.floor(ii / 5))
+            name = t[0]
+            temp = mathematics.flatten(t[1])
+            self.add_template(sample=Vector(temp), gid=name)
         self.length = len(self.templates)
         self.train(GPSR_N, GPSR_R, BETA)
 
