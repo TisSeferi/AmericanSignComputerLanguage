@@ -28,7 +28,7 @@ class Jackknife:
 
         for ii, t in enumerate(templates):
             temp = mathematics.flatten(t)
-            self.add_template(sample=Vector(temp), gid=ii % 5)
+            self.add_template(sample=Vector(temp), gid=math.floor(ii / 5))
         self.length = len(self.templates)
         self.train(GPSR_N, GPSR_R, BETA)
 
@@ -62,17 +62,17 @@ class Jackknife:
         
         for tt in range(0, template_cnt):
 
-            # if self.templates[tt].lb > self.templates[tt].rejection_threshold:
-            #     continue
-            # if self.templates[tt].lb > best:
-            #     continue
+            if self.templates[tt].lb > self.templates[tt].rejection_threshold:
+                continue
+            if self.templates[tt].lb > best:
+                continue
 
             score = self.templates[tt].cf
             
             score *= self.DTW(features.vecs, self.templates[tt].features.vecs)
             print(str(self.templates[tt].gesture_id) + " " + str(score))
-            # if (score > self.templates[tt].rejection_threshold):
-            #     continue
+            if (score > self.templates[tt].rejection_threshold):
+                continue
             if (score < best):
                 best = score
                 ret = self.templates[tt].gesture_id
@@ -142,17 +142,17 @@ class Jackknife:
         for ii in range(1, v1.size() + 1):
             for jj in range(max(1, ii - math.floor(self.blades.radius)),
                             min(v2.size(), ii + math.floor(self.blades.radius))):
-                cost[ii][jj] = min(min(cost[ii - 1][jj], cost[ii][jj - 1]), cost[ii - 1][jj - 1])
+                cost[ii][jj] = min(min(cost[ii - 1][jj], cost[ii][jj - 1]), cost[ii - 1][jj - 1])            
+                if self.blades.inner_product and not self.blades.euclidean_distance:
+                    cost[ii][jj] += 1.0 - v1[ii - 1].dot(v2[jj - 1])
+                elif self.blades.euclidean_distance:
+                    cost[ii][jj] += v1[ii - 1].l2norm2(v2[jj - 1])
+                else:
+                    assert 0                
 
-            if self.blades.inner_product:
-                cost[ii][jj] += 1.0 - v1[ii - 1].dot(v2[jj - 1])
-            elif self.blades.euclidean_distance:
-                cost[ii][jj] += v1[ii - 1].l2norm2(v2[jj - 1])
-            else:
-                assert 0
 
         # ls
-        # "\n\nJK 153 [Score]:")
+        # print("\n\nJK 153 [Score]:")
         # print(cost[v1.size() - 1][v2.size() - 1])
         return cost[v1.size() - 1][v2.size() - 1]
 
