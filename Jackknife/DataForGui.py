@@ -29,8 +29,6 @@ HAND_REF = [
     'ring_finger_mcp', 'ring_finger_pip', 'ring_finger_dip', 'ring_finger_tip',
     'pinky_mcp', 'pinky_pip', 'pinky_dip', 'pinky_tip',
 ]
-
-
 def capture_vid(video_name=1):
     spot = PRE_RECORDED_BOOT_TIME
 
