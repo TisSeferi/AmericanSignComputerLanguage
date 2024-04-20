@@ -6,6 +6,7 @@ import os
 import Jackknife as jk
 from pathlib import Path
 import threading
+import collections as col
 
 
 X = 0
@@ -18,7 +19,7 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 CV2_RESIZE = (640, 480)
 
-BUFFER_WINDOW = 2 # In seconds
+BUFFER_WINDOW = 3 # In seconds
 BUFFER_FPS = 30  # TODO Fix for variable framerate cameras
 BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
@@ -104,6 +105,7 @@ def process_video(video_name):
 
 
 def live_process():
+    print("Starting hand detection")
     cap = cv2.VideoCapture(0)
     recognizer = jk.Jackknife(templates = assemble_templates())
 
@@ -117,8 +119,8 @@ def live_process():
 
     # The list for returning the dataframes
     #data = np.zeros((BUFFER_LENGTH, 2))
-    data = np.zeros((BUFFER_LENGTH, NUM_POINTS, DIMS))
-    frame = 0
+    data = col.deque()
+    frame = np.zeros((NUM_POINTS, DIMS))
 
     success, img = cap.read()
     while success:
@@ -144,20 +146,22 @@ def live_process():
                     # Convert landmarks to dataframe
                     points = handLms.landmark
                     for ii, lm in enumerate(points):
-                        data[frame][ii][X] = lm.x
-                        data[frame][ii][Y] = lm.y
+                        frame[ii][X] = lm.x
+                        frame[ii][Y] = lm.y
+            data.append(frame.copy())
         else:
-            for ii in range(NUM_POINTS):
-                data[frame][ii][X] = -1
-                data[frame][ii][Y] = -1
+            pass
+            #for ii in range(NUM_POINTS):
+            #    frame[ii][X] = -1
+            #    frame[ii][Y] = -1
 
-        if frame == BUFFER_FRAMES - 1:
-            print()
-            t1 = threading.Thread(target = print, args = (recognizer.classify(data.copy()),))
-            t1.start()
-        frame = (frame + 1) % BUFFER_FRAMES
         
-
+        if len(data) == BUFFER_FRAMES - 1:
+            data.popleft()
+            trajectory = np.array(data.copy())
+            t1 = threading.Thread(target = print, args = (recognizer.classify(trajectory),))
+            t1.start()
+            
         success, img = cap.read()
 
     cap.release()
@@ -190,9 +194,11 @@ def classify_example(test):
 
 
 #save_test('test.mp4')
-classify_example(process_video('test .mp4'))
-
+#classify_example(process_video('test .mp4'))
 #extract_from_videos()
+live_process()
+
+
 # print('Running Recognition')
 # 
 # t = time.time()

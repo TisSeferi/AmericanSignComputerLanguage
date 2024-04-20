@@ -1,6 +1,7 @@
 #import FeedData as fd
 from functools import cmp_to_key
 import numpy as np
+import os
 import math
 from JkBlades import JkBlades
 from Vector import Vector
@@ -14,6 +15,9 @@ import random as r
 # Add "JackknifeFeatures" with parameters "blades" and "trajectory"
 # Terms:
 # Trajectory is the incoming data stream from our camera feed
+
+CLEAR_TERMINAL = True
+
 GPSR_N = 6
 GPSR_R = 2
 BETA = 1.00
@@ -38,6 +42,8 @@ class Jackknife:
         self.templates.append(JkTemplate(self.blades, sample=sample, gid=gid))
 
     def classify(self, trajectory):
+        if CLEAR_TERMINAL:
+            os.system('cls')
         trajectory = mathematics.flatten(trajectory)
         features = JkFeatures(self.blades, trajectory)
         template_cnt = len(self.templates)
