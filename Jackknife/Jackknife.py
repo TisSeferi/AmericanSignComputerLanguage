@@ -86,6 +86,7 @@ class Jackknife:
                 best = score
                 ret = self.templates[tt].gesture_id
                 
+            
 
         return ret
 
