@@ -77,17 +77,20 @@ class Jackknife:
                 continue
 
             score = self.templates[tt].cf
+            second_best_score = score
+            second_best_template = None
             
             score *= self.DTW(features.vecs, self.templates[tt].features.vecs)
             print(str(self.templates[tt].gesture_id) + " " + str(score))
             if (score > self.templates[tt].rejection_threshold):
                 continue
             if (score < best):
+                second_best_template = ret
                 best = score
                 ret = self.templates[tt].gesture_id
                 
-            
 
+        print("1:" + str(ret))        
         return ret
 
     def train(self, gpsr_n, gpsr_r, beta):

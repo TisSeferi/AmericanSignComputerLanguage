@@ -159,8 +159,8 @@ def live_process():
         if len(data) == BUFFER_FRAMES - 1:
             data.popleft()
             trajectory = np.array(data.copy())
-            t1 = threading.Thread(target = print, args = (recognizer.classify(trajectory),))
-            t1.start()
+            t1 = threading.Thread(target = recognizer.classify, args = ((trajectory),))
+            print(t1.start())
             
         success, img = cap.read()
 
