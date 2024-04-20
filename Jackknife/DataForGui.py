@@ -102,123 +102,126 @@ class DataHandler:
         self.recognizer = None
 
         self.classification = None
+        self.recognizer = None
+        self.train_jackknife()
 
-        def update_templates(self):
-            self.templates = []
-            folder = self.settings.templates_data_folder
-            for path in os.listdir(folder):
-                name = path.split('.')[0]
-                self.templates.append((name, np.load(folder + '/' + path)))
+    def update_templates(self):
+        self.templates = []
+        folder = self.settings.templates_data_folder
+        for path in os.listdir(folder):
+            name = path.split('.')[0]
+            self.templates.append((name, np.load(folder + '/' + path)))
+        
+    def train_jackknife(self):
+        self.update_templates()
+        self.recognizer = jk.Jackknife(templates=self.templates)
+
+    def process_video(self, video_name):
+        cap, hands = capture_vid(video_name)
+
+        data = []
+        success, img = cap.read()
+
+        while success:
+            if not success:
+                print("Error in reading!")
+                cap.release()
+                exit()
+
+            # Image resizing for standardiztion
+            img = cv2.resize(img, self.settings.cv2_resize)
+
+            # Running recognition
+            imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            results = hands.process(imgRGB)
+
+            # Extracting Landmarks
+            if results.multi_hand_landmarks:
+                frame = landmarks_to_frame(results)
+                data.append(frame)
+
+            success, img = cap.read()
+
+        cap.release()
+        cv2.destroyAllWindows()
+
+        return data
+    
+    def save_as_template(self, data="", location = None, name=""):
+        if location == -1:
+            location = self.settings.templates_data_folder
+        #Data can be an mp4 path string or a numpy array
+        if isinstance(data, str):
+            data = self.process_video(data)
+            name = data.split('.')[0]
+        elif name == "":
+            print("Naming error, please include name when saving numpy array")
+
+        np.save(location + "/" + name, data)
+        print("Successfully saved: " + name)
+        print("to " + location + "/" + name + ".npy")
+
+    def save_as_test(self, data="", location = -1, name=""):
+        if location == -1:
+            location = self.settings.test_data_folder
+        # Data:
+        # String or numpy template
+        if isinstance(data, str):
+            data = self.process_video(data)
+            name = data.split('.')[0]
+        elif name == "":
+            print("Naming error, please include name when saving numpy array")
+
+        np.save(location + "/" + name, data)
+        print("Successfully saved: " + name)
+        print("to " + location + "/" + name + ".npy")
+
+    def live_process(self):
+        cap, hands = capture_vid()
+        data = col.deque()
+        success, img = cap.read()
+
+        while success:
+            if not success:
+                print("Error in reading!")
+                cap.release()
+                exit()
+
+            # Image resizing for standardiztion
+            img = cv2.resize(img, self.settings.cv2_resize)
+
+            # Running recognition
+            imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            results = hands.process(imgRGB)
+
+            # Extracting Landmarks
+            if results.multi_hand_landmarks:
+                frame = landmarks_to_frame(results)
+                data.append(frame)
             
-        def train_jackknife(self):
-            self.update_templates()
-            self.recognizer = jk.Jackknife(templates=self.templates)
-
-        train_jackknife()
-
-        def process_video(video_name):
-            cap, hands = capture_vid()
-
-            data = []
-            success, img = cap.read()
-
-            while success:
-                if not success:
-                    print("Error in reading!")
-                    cap.release()
-                    exit()
-
-                # Image resizing for standardiztion
-                img = cv2.resize(img, self.settings.cv2_resize)
-
-                # Running recognition
-                imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                results = hands.process(imgRGB)
-
-                # Extracting Landmarks
-                if results.multi_hand_landmarks:
-                    frame = landmarks_to_frame(results)
-                    data.append(frame)
-
-                success, img = cap.read()
-
-            cap.release()
-            cv2.destroyAllWindows()
-
-            return data
-        
-        def save_as_template(self, data="", location = self.settings.templates_data_folder, name=""):
-            #Data can be an mp4 path string or a numpy array
-            if isinstance(data, str):
-                data = process_video(data)
-                name = data.split('.')[0]
-            elif name == "":
-                print("Naming error, please include name when saving numpy array")
-
-            np.save(location + "/" + name, data)
-            print("Successfully saved: " + name)
-            print("to " + location + "/" + name + ".npy")
-
-        def save_as_test(self, data="", location = self.settings.test_data_folder, name=""):
-            # Data:
-            # String or numpy template
-            if isinstance(data, str):
-                data = process_video(data)
-                name = data.split('.')[0]
-            elif name == "":
-                print("Naming error, please include name when saving numpy array")
-
-            np.save(location + "/" + name, data)
-            print("Successfully saved: " + name)
-            print("to " + location + "/" + name + ".npy")
-
-        def live_process(self):
-            cap, hands = capture_vid()
-            data = col.deque()
-            success, img = cap.read()
-
-            while success:
-                if not success:
-                    print("Error in reading!")
-                    cap.release()
-                    exit()
-
-                # Image resizing for standardiztion
-                img = cv2.resize(img, self.settings.cv2_resize)
-
-                # Running recognition
-                imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                results = hands.process(imgRGB)
-
-                # Extracting Landmarks
-                if results.multi_hand_landmarks:
-                    frame = landmarks_to_frame(results)
-                    data.append(frame)
+            if len(data) ==  - 1:
+                data.popleft()
+                trajectory = np.array(data.copy())
+                t1 = threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
+                print(t1.start())
                 
-                if len(data) ==  - 1:
-                    data.popleft()
-                    trajectory = np.array(data.copy())
-                    t1 = threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
-                    print(t1.start())
-                    
-                success, img = cap.read()
+            success, img = cap.read()
 
-            cap.release()
-            cv2.destroyAllWindows()
-        
-        #MP4 path
-        def classify(self, data):
-            if isinstance(data, str):
-                extension = data.split('.')[1]
+        cap.release()
+        cv2.destroyAllWindows()
+    
+    def classify(self, data):
+        if isinstance(data, str):
+            extension = data.split('.')[1]
+            if extension == '.mp4':
+                data = self.process_video(data)
+            else:
+                data = np.load(data)           
 
-                if extension == '.mp4':
-                    data = process_video(data)
-                else:
-                    data = np.load(data)           
+        self.recognizer.classify(data)
 
-            self.recognizer.classify(data)
-
-        
+d = DataHandler()
+d.classify('test.mp4')
 
 
 
