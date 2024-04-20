@@ -148,8 +148,7 @@ class DataHandler:
             return data
         
         def save_as_template(self, data="", location = self.settings.templates_data_folder, name=""):
-            # Data:
-            # String or numpy template
+            #Data can be an mp4 path string or a numpy array
             if isinstance(data, str):
                 data = process_video(data)
                 name = data.split('.')[0]
@@ -207,6 +206,17 @@ class DataHandler:
             cap.release()
             cv2.destroyAllWindows()
         
+        #MP4 path
+        def classify(self, data):
+            if isinstance(data, str):
+                extension = data.split('.')[1]
+
+                if extension == '.mp4':
+                    data = process_video(data)
+                else:
+                    data = np.load(data)           
+
+            self.recognizer.classify(data)
 
         
 
