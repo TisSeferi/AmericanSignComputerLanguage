@@ -38,8 +38,7 @@ HAND_REF = [
 ]
 
 
-def euclidean_dist(self, df1, df2, cols=['x', 'y']):
-    return np.linalg.norm(df1[cols].values - df2[cols].values, axis=1)
+
 
 def assemble_templates():
     templates = []
@@ -107,7 +106,7 @@ def process_video(video_name):
 def live_process():
     print("Starting hand detection")
     cap = cv2.VideoCapture(0)
-    recognizer = jk.Jackknife(templates = assemble_templates())
+    
 
     if not cap.isOpened():
         print("Error: Failed to open File.")
@@ -116,6 +115,8 @@ def live_process():
     print("HandDetector initialized successfully.")
 
     hands = mp.solutions.hands.Hands()
+
+    recognizer = jk.Jackknife(templates = assemble_templates())
 
     # The list for returning the dataframes
     #data = np.zeros((BUFFER_LENGTH, 2))
