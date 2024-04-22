@@ -89,11 +89,13 @@ class Settings:
         self.buffer_length = self.buffer_frames * NUM_POINTS
 
         #templates
-        self.template_raw_vids_folder = 'TestVideos/'
-        self.test_raw_vids_folder = ''
+        self.home_folder = str(Path(__file__).resolve().parent.parent) + '\\'
+
+        self.raw_template_vids = self.home_folder + 'templatevids\\'
+        self.raw_test_vids = self.home_folder + 'testvideos\\'
         
-        self.templates_data_folder = str(Path(__file__).resolve().parent.parent / 'templates')
-        self.test_data_folder = ''
+        self.template_data_folder = self.home_folder + 'templates\\'
+        self.test_data_folder = self.home_folder + 'tests\\'
 
         #boot time
         self.boot_time = 5
@@ -114,11 +116,20 @@ class DataHandler:
 
         self.classification = None
         self.recognizer = None
+
+        self.frame_buffer = col.deque()
+
+        self.capture, self.hands = capture_vid(0)
+
         self.train_jackknife()
+
+    def terminate_cv2(self):
+        self.capture.release()
+        cv2.destroyAllWindows()        
 
     def update_templates(self):
         self.templates = []
-        folder = self.settings.templates_data_folder
+        folder = self.settings.template_data_folder
         for path in os.listdir(folder):
             name = path.split('.')[0]
             self.templates.append((name, np.load(folder + '/' + path)))
@@ -160,7 +171,7 @@ class DataHandler:
     
     def save_as_template(self, data="", location = None, name=""):
         if location == -1:
-            location = self.settings.templates_data_folder
+            location = self.settings.template_data_folder
         #Data can be an mp4 path string or a numpy array
         if isinstance(data, str):
             data = self.process_video(data)
@@ -168,9 +179,9 @@ class DataHandler:
         elif name == "":
             print("Naming error, please include name when saving numpy array")
 
-        np.save(location + "/" + name, data)
+        np.save(location + "\\" + name, data)
         print("Successfully saved: " + name)
-        print("to " + location + "/" + name + ".npy")
+        print("to " + location + "\\" + name + ".npy")
 
     def save_as_test(self, data="", location = -1, name=""):
         if location == -1:
@@ -183,11 +194,22 @@ class DataHandler:
         elif name == "":
             print("Naming error, please include name when saving numpy array")
 
-        np.save(location + "/" + name, data)
+        np.save(location + "\\" + name, data)
         print("Successfully saved: " + name)
-        print("to " + location + "/" + name + ".npy")
+        print("to " + location + "\\" + name + ".npy")
 
-    def live_process(self):
+    def live_process(self, results):
+        if results.multi_hand_landmarks:
+            frame = landmarks_to_frame(results)
+            self.frame_buffer.append(frame)
+        
+        if len(self.frame_buffer) ==  - 1:
+            self.frame_buffer.popleft()
+            trajectory = np.array(self.frame_buffer.copy())
+            t1 = threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
+            print(t1.start)
+            
+    def frame_process(self):
         cap, hands = capture_vid()
         data = col.deque()
         success, img = cap.read()
@@ -221,16 +243,17 @@ class DataHandler:
     def classify(self, data):
         if isinstance(data, str):
             extension = data.split('.')[1]
-            data = str(Path(__file__).resolve().parent.parent) + '\\' + data
             if extension == 'mp4':
+                data = self.settings.raw_test_vids + data
                 data = self.process_video(data)
+                
             else:
+                data = self.settings.test_data_folder + data
                 data = np.load(data)           
 
         self.recognizer.classify(data)
 
 d = DataHandler()
-#d.classify('test.mp4')
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
@@ -244,12 +267,13 @@ def append_to_console(message):
     main.after(0, do_append)
 
 def update_frame():
-    ret, cv_image = cap.read()
+    ret, cv_image = d.capture.read()
     if ret:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         results = hands.process(cv_image)
         
         if results.multi_hand_landmarks:
+            d.live_process(results)
             for hand_landmarks in results.multi_hand_landmarks:
                 mp.solutions.drawing_utils.draw_landmarks(
                     cv_image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
@@ -321,17 +345,14 @@ live_button.pack(side=tk.RIGHT, padx=10)
 console_output = scrolledtext.ScrolledText(main, height=16)
 console_output.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 20))
 
-cap = cv2.VideoCapture(0)
-if not cap.isOpened():
-    append_to_console("Failed to open camera.")
-    raise ValueError("Unable to open video source")
 
 update_frame()
 
 main.mainloop()
 
-cap.release()
-cv2.destroyAllWindows()
+d.terminate_cv2()
+
+
 
 
 
