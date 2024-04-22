@@ -14,9 +14,6 @@ import cv2
 from PIL import Image, ImageTk
 import builtins
 
-
-
-
 X = 0
 Y = 1
 
@@ -218,6 +215,7 @@ class DataHandler:
     def classify(self, data):
         if isinstance(data, str):
             extension = data.split('.')[1]
+            data = str(Path(__file__).resolve().parent.parent) + '\\' + data
             if extension == 'mp4':
                 data = self.process_video(data)
             else:
