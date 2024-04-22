@@ -14,9 +14,6 @@ import cv2
 from PIL import Image, ImageTk
 import builtins
 
-
-
-
 X = 0
 Y = 1
 
