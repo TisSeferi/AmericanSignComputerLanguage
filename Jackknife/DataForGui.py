@@ -195,14 +195,11 @@ class DataHandler:
                 cap.release()
                 exit()
 
-            # Image resizing for standardiztion
             img = cv2.resize(img, self.settings.cv2_resize)
 
-            # Running recognition
             imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             results = hands.process(imgRGB)
 
-            # Extracting Landmarks
             if results.multi_hand_landmarks:
                 frame = landmarks_to_frame(results)
                 data.append(frame)
@@ -230,6 +227,9 @@ class DataHandler:
 
 d = DataHandler()
 #d.classify('test.mp4')
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+
 
 def append_to_console(message):
     def do_append():
@@ -242,17 +242,25 @@ def append_to_console(message):
 def update_frame():
     ret, cv_image = cap.read()
     if ret:
-        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB) 
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+        results = hands.process(cv_image)
+        
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                mp.solutions.drawing_utils.draw_landmarks(
+                    cv_image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
         pil_image = Image.fromarray(cv_image)
         tk_image = ImageTk.PhotoImage(image=pil_image)
-        canvas.image = tk_image 
         canvas.itemconfig(image_on_canvas, image=tk_image)
-    main.after(10, update_frame) 
+        canvas.image = tk_image
+
+    main.after(10, update_frame)
 
 def classify_video_thread(file_path):
     def run():
         append_to_console(f"Classifying data: {file_path}")
-        result = d.classify(file_path)  # This assumes classify returns some result or message
+        result = d.classify(file_path) 
         append_to_console(f"Classification completed: {result}")
     threading.Thread(target=run).start()
 
@@ -261,11 +269,11 @@ def run_button_clicked():
     if file_path:
         def run():
             original_print = builtins.print
-            builtins.print = append_to_console  # Override print
+            builtins.print = append_to_console 
             try:
-                d.classify(file_path)  # Run classification
+                d.classify(file_path)
             finally:
-                builtins.print = original_print  # Restore original print function
+                builtins.print = original_print
         threading.Thread(target=run).start()
     else:
         append_to_console("Please enter a file name or path.")
