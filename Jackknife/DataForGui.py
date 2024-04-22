@@ -207,8 +207,8 @@ class DataHandler:
             self.frame_buffer.popleft()
             trajectory = np.array(self.frame_buffer.copy())
             t1 = threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
-            print(t1.start)
-            
+            t1.start()
+
     def frame_process(self):
         cap, hands = capture_vid()
         data = col.deque()
