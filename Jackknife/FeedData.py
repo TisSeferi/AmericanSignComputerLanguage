@@ -23,7 +23,7 @@ BUFFER_WINDOW = 3 # In seconds
 BUFFER_FPS = 30  # TODO Fix for variable framerate cameras
 BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
-BUFFER_LENGTH = BUFFER_FRAMES * NUM_POINTS
+BUFFER_LENGTH = BUFFER_FRAMES
 
 RAW_VIDS_FOLDER = 'TestVideos/'
 TEMPLATES = str(Path(__file__).resolve().parent.parent / 'templates')

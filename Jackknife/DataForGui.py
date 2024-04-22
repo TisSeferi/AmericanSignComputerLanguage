@@ -82,11 +82,11 @@ class Settings:
         self.cv2_resize = (640, 480)
         
         #buffer settings
-        self.buffer_window = 3
-        self.buffer_fps = 30
+        self.buffer_window = 2
+        self.buffer_fps = 15
 
         self.buffer_frames = self.buffer_window * self.buffer_fps
-        self.buffer_length = self.buffer_frames * NUM_POINTS
+        self.buffer_length = self.buffer_frames
 
         #templates
         self.home_folder = str(Path(__file__).resolve().parent.parent) + '\\'
@@ -199,15 +199,28 @@ class DataHandler:
         print("to " + location + "\\" + name + ".npy")
 
     def live_process(self, results):
-        if results.multi_hand_landmarks:
-            frame = landmarks_to_frame(results)
-            self.frame_buffer.append(frame)
+        clear_console()
+        frame = landmarks_to_frame(results)
+        self.frame_buffer.append(frame)
         
-        if len(self.frame_buffer) ==  - 1:
+        print(str(len(self.frame_buffer)) + '/' + str(self.settings.buffer_length))
+        if len(self.frame_buffer) == self.settings.buffer_length:
+            #print("Please fuck oh fuck please")
             self.frame_buffer.popleft()
             trajectory = np.array(self.frame_buffer.copy())
-            t1 = threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
-            t1.start()
+            #threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
+
+            def run():
+
+                original_print = builtins.print
+                builtins.print = append_to_console 
+                try:
+                    d.classify(trajectory)
+                    #print("water melon")
+                finally:
+                    builtins.print = original_print
+            threading.Thread(target=run).start()
+
 
     def frame_process(self):
         cap, hands = capture_vid()
@@ -266,13 +279,19 @@ def append_to_console(message):
         console_output.see(tk.END)
     main.after(0, do_append)
 
+def clear_console():
+    console_output.configure(state='normal')
+    console_output.delete('1.0', tk.END)
+    console_output.configure(state='disabled')
+
+
 def update_frame():
     ret, cv_image = d.capture.read()
     if ret:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         results = hands.process(cv_image)
-        
-        if results.multi_hand_landmarks:
+                
+        if results.multi_hand_landmarks:            
             d.live_process(results)
             for hand_landmarks in results.multi_hand_landmarks:
                 mp.solutions.drawing_utils.draw_landmarks(
@@ -285,17 +304,12 @@ def update_frame():
 
     main.after(10, update_frame)
 
-def classify_video_thread(file_path):
-    def run():
-        append_to_console(f"Classifying data: {file_path}")
-        result = d.classify(file_path) 
-        append_to_console(f"Classification completed: {result}")
-    threading.Thread(target=run).start()
 
 def run_button_clicked():
     file_path = runP.get()
     if file_path:
         def run():
+            clear_console()
             original_print = builtins.print
             builtins.print = append_to_console 
             try:
@@ -309,13 +323,13 @@ def run_button_clicked():
 
 main = tk.Tk()
 main.title('ASCL Prototype')
-main.geometry('1200x700')
+main.geometry('1600x900')
 
 title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
 title_label.pack(pady=10)
 
 canvas = tk.Canvas(main, width=400, height=400)
-canvas.pack(side=tk.LEFT, padx=20, pady=10)
+canvas.pack(side=tk.TOP, padx=20, pady=10)
 image_on_canvas = canvas.create_image(200, 200, anchor='center')
 
 record_frame = ttk.Frame(main)
@@ -339,7 +353,7 @@ runP.pack(side=tk.RIGHT, padx=10)
 live_frame = ttk.Frame(main)
 live_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-live_button = ttk.Button(live_frame, text='Live')
+live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
 live_button.pack(side=tk.RIGHT, padx=10)
 
 console_output = scrolledtext.ScrolledText(main, height=16)
