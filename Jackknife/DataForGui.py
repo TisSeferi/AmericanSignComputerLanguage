@@ -275,6 +275,7 @@ def run_button_clicked():
         threading.Thread(target=run).start()
     else:
         append_to_console("Please enter a file name or path.")
+  
 
 main = tk.Tk()
 main.title('ASCL Prototype')
