@@ -221,7 +221,7 @@ class DataHandler:
     def classify(self, data):
         if isinstance(data, str):
             extension = data.split('.')[1]
-            if extension == '.mp4':
+            if extension == 'mp4':
                 data = self.process_video(data)
             else:
                 data = np.load(data)           
