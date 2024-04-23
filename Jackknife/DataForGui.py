@@ -320,10 +320,32 @@ def run_button_clicked():
     else:
         append_to_console("Please enter a file name or path.")
   
+def record_video():
+    vid_name = recordP.get() + ".mp4"
+    directory = d.settings.raw_template_vids
+    video_path = os.path.join(directory, vid_name)
+
+    fourcc = cv2.VideoWriter_fourcc('mp4')
+    out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
+
+    start_time = time.time()
+    while int(time.time() - start_time) < 4:
+        ret, frame = d.capture.read()
+        if ret:
+            out.write(frame)
+        else:
+            break
+
+    out.release()
+    print("Finished recording")
+
+def start_recording():
+    threading.Thread(target=record_video).start()
+
 
 main = tk.Tk()
 main.title('ASCL Prototype')
-main.geometry('1600x900')
+main.geometry('600x900')
 
 title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
 title_label.pack(pady=10)
@@ -335,7 +357,7 @@ image_on_canvas = canvas.create_image(200, 200, anchor='center')
 record_frame = ttk.Frame(main)
 record_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-record_button = ttk.Button(record_frame, text='Record')
+record_button = ttk.Button(record_frame, text='Record', command=start_recording)
 record_button.pack(side=tk.RIGHT, padx=10)
 
 recordP = ttk.Entry(record_frame)
