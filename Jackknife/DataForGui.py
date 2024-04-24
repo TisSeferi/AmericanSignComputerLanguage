@@ -26,7 +26,7 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 DEFAULT_TIMES = 'times.npy'
 
-CAN_ERTIS_CODE = True #Update to False to run
+CAN_ERTIS_CODE = False #Update to False to run
 
 
 HAND_REF = [
@@ -375,54 +375,58 @@ def start_recording():
 if not CAN_ERTIS_CODE:
     main = tk.Tk()
     main.title('ASCL Prototype')
-    main.geometry('600x900')
+    main.geometry('')
 
-    title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
-    title_label.pack(pady=10)
+    title_frame =  ttk.Frame(main)
 
-    update_label = ttk.Label(main, text='MP4 Recording works too, nerd!', font='Calibri 12')
-    update_label.pack(pady=10)
+    title_label = ttk.Label(title_frame, text='ASCL', font='Calibri 24 bold').grid(
+        row = 0)
+    update_label = ttk.Label(title_frame, text='MP4 Recording works too, nerd!', font='Calibri 12').grid(
+        row = 1)
 
-    canvas = tk.Canvas(main, width=400, height=400)
-    canvas.pack(side=tk.TOP, padx=20, pady=10)
+    canvas_frame = ttk.Frame(main)
+    canvas = tk.Canvas(canvas_frame, width=400, height=400)
+    canvas.grid(row=0, column = 0)
     image_on_canvas = canvas.create_image(200, 200, anchor='center')
 
     record_frame = ttk.Frame(main)
-    record_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
-
-    record_button = ttk.Button(record_frame, text='Record', command=start_recording)
-    record_button.pack(side=tk.RIGHT, padx=10)
-
-    recordP = ttk.Entry(record_frame)
-    recordP.pack(side=tk.RIGHT, padx=10)
-
-    run_frame = ttk.Frame(main)
-    run_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
-
-    run_button = ttk.Button(run_frame, text='Run', command=run_button_clicked)
-    run_button.pack(side=tk.RIGHT, padx=10)
-
-    runP = ttk.Entry(run_frame)
-    runP.pack(side=tk.RIGHT, padx=10)
-
-    live_frame = ttk.Frame(main)
-    live_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
-
-    #live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
-    #live_button.pack(side=tk.RIGHT, padx=10)
+    
+    r1 = ttk.Radiobutton(record_frame, text='Template', value='Value 1', variable='').grid(
+        row=0,column=0, sticky="e")
+    
+    r2 = ttk.Radiobutton(record_frame, text='Test', value='Value 2', variable='').grid(
+        row=0,column=1, sticky="e")    
+    recordP = ttk.Entry(record_frame).grid(
+        row=1, column=0, sticky="e")
+    
+    record_button = ttk.Button(record_frame, text='Record', command=start_recording).grid(
+        row=1, column=1, sticky="e")
+    runP = ttk.Entry(record_frame).grid(
+        row=2,column=0, sticky="e")
+    run_button = ttk.Button(record_frame, text='Run', command=run_button_clicked).grid(
+        row=2,column=1, sticky="e")
 
     #This clears both buffers
-    clear_button = ttk.Button(live_frame, text='Clear', command=d.clear_results)
-    clear_button.pack(side=tk.RIGHT, padx=10)
-
-    #The results buffer has been added where live button used to be
-    #Lines 95 and 96 control the length
     current_result = tk.StringVar()
-    result_label = ttk.Label(live_frame, background='white', textvariable=current_result)
-    result_label.pack(side=tk.RIGHT, padx=10)
+
+    result_label = ttk.Label(record_frame, background='white', textvariable=current_result).grid(
+        row=3,column=0, sticky="e")
+    clear_button = ttk.Button(record_frame, text='Clear', command=d.clear_results).grid(
+        row=3,column=1, sticky="e")
+
+    
 
     console_output = scrolledtext.ScrolledText(main, height=16)
-    console_output.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 20))
+
+    title_frame.grid(
+        row=0, column=0, columnspan=3)
+    canvas_frame.grid(
+        row=1, column=0, columnspan=1)
+    record_frame.grid(
+        row=1, column=2, sticky='s')
+    console_output.grid(
+        row=3, columnspan=3)
+    
 
 
     update_frame()
