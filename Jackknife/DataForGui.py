@@ -380,7 +380,7 @@ if not CAN_ERTIS_CODE:
     title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
     title_label.pack(pady=10)
 
-    update_label = ttk.Label(main, text='MP4 Recording works too', font='Calibri 12')
+    update_label = ttk.Label(main, text='MP4 Recording works too, nerd!', font='Calibri 12')
     update_label.pack(pady=10)
 
     canvas = tk.Canvas(main, width=400, height=400)
