@@ -26,6 +26,8 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 DEFAULT_TIMES = 'times.npy'
 
+#CAN_ERTIS_CODE = False
+
 HAND_REF = [
     'wrist',
     'thumb_cmc', 'thumb_mcp', 'thumb_ip', 'thumb_tip',
@@ -81,12 +83,18 @@ class Settings:
         #cv2 settings
         self.cv2_resize = (640, 480)
         
-        #buffer settings
+        #Frame Buffer Settings
         self.buffer_window = 2
         self.buffer_fps = 15
 
         self.buffer_frames = self.buffer_window * self.buffer_fps
         self.buffer_length = self.buffer_frames
+
+        #Results Buffer Settings
+        self.results_window = 2
+        self.results_rps = self.buffer_fps
+
+        self.results_length = self.results_window * self.results_rps
 
         #templates
         self.home_folder = str(Path(__file__).resolve().parent.parent) + '\\'
@@ -118,10 +126,33 @@ class DataHandler:
         self.recognizer = None
 
         self.frame_buffer = col.deque()
+        self.results_buffer = col.deque()
+
+        self.current_result = "Filling Buffer"
 
         self.capture, self.hands = capture_vid(0)
 
         self.train_jackknife()
+
+    def update_results(self, results):
+        self.results_buffer.append(results)
+        best = "Can't Match"
+        if len(self.results_buffer) == self.settings.results_length:
+            self.results_buffer.popleft()
+
+            min = self.results_buffer[0][0]
+            for result in self.results_buffer:
+                if result[0] != -1 and result[0] < min:
+                    min = result[0]
+                    best = result[1]
+
+            self.current_result = best
+
+    def clear_results(self):
+        self.current_result = "Filling Buffer"
+        self.frame_buffer = col.deque()
+        self.results_buffer = col.deque()
+
 
     def terminate_cv2(self):
         self.capture.release()
@@ -205,18 +236,15 @@ class DataHandler:
         
         print(str(len(self.frame_buffer)) + '/' + str(self.settings.buffer_length))
         if len(self.frame_buffer) == self.settings.buffer_length:
-            #print("Please fuck oh fuck please")
             self.frame_buffer.popleft()
             trajectory = np.array(self.frame_buffer.copy())
-            #threading.Thread(target = self.recognizer.classify, args = ((trajectory),))
 
             def run():
 
                 original_print = builtins.print
                 builtins.print = append_to_console 
                 try:
-                    d.classify(trajectory)
-                    #print("water melon")
+                    self.update_results(d.classify(trajectory))
                 finally:
                     builtins.print = original_print
             threading.Thread(target=run).start()
@@ -264,7 +292,7 @@ class DataHandler:
                 data = self.settings.test_data_folder + data
                 data = np.load(data)           
 
-        self.recognizer.classify(data)
+        return self.recognizer.classify(data)
 
 d = DataHandler()
 mp_hands = mp.solutions.hands
@@ -287,6 +315,7 @@ def clear_console():
 
 def update_frame():
     ret, cv_image = d.capture.read()
+    current_result.set(d.current_result)
     if ret:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         results = hands.process(cv_image)
@@ -375,8 +404,15 @@ runP.pack(side=tk.RIGHT, padx=10)
 live_frame = ttk.Frame(main)
 live_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
-live_button.pack(side=tk.RIGHT, padx=10)
+#live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
+#live_button.pack(side=tk.RIGHT, padx=10)
+
+clear_button = ttk.Button(live_frame, text='Clear', command=d.clear_results)
+clear_button.pack(side=tk.RIGHT, padx=10)
+
+current_result = tk.StringVar()
+result_label = ttk.Label(live_frame, background='white', textvariable=current_result)
+result_label.pack(side=tk.RIGHT, padx=10)
 
 console_output = scrolledtext.ScrolledText(main, height=16)
 console_output.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 20))

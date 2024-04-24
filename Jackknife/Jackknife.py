@@ -77,8 +77,6 @@ class Jackknife:
                 continue
 
             score = self.templates[tt].cf
-            second_best_score = score
-            second_best_template = None
             
             score *= self.DTW(features.vecs, self.templates[tt].features.vecs)
             print(str(self.templates[tt].gesture_id) + " " + str(score))
@@ -90,8 +88,8 @@ class Jackknife:
                 ret = self.templates[tt].gesture_id
                 
 
-        print("1:" + str(ret))        
-        return ret
+        print("1:" + str(ret))
+        return (best, ret)
 
     def train(self, gpsr_n, gpsr_r, beta):
         template_cnt = len(self.templates)
