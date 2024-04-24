@@ -26,7 +26,8 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 DEFAULT_TIMES = 'times.npy'
 
-#CAN_ERTIS_CODE = False
+CAN_ERTIS_CODE = True #Update to False to run
+
 
 HAND_REF = [
     'wrist',
@@ -136,7 +137,7 @@ class DataHandler:
 
     def update_results(self, results):
         self.results_buffer.append(results)
-        best = "Can't Match"
+        best = self.current_result
         if len(self.results_buffer) == self.settings.results_length:
             self.results_buffer.popleft()
 
@@ -371,58 +372,70 @@ def record_video():
 def start_recording():
     threading.Thread(target=record_video).start()
 
+if not CAN_ERTIS_CODE:
+    main = tk.Tk()
+    main.title('ASCL Prototype')
+    main.geometry('600x900')
 
-main = tk.Tk()
-main.title('ASCL Prototype')
-main.geometry('600x900')
+    title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
+    title_label.pack(pady=10)
 
-title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
-title_label.pack(pady=10)
+    update_label = ttk.Label(main, text='MP4 Recording works too', font='Calibri 12')
+    update_label.pack(pady=10)
 
-canvas = tk.Canvas(main, width=400, height=400)
-canvas.pack(side=tk.TOP, padx=20, pady=10)
-image_on_canvas = canvas.create_image(200, 200, anchor='center')
+    canvas = tk.Canvas(main, width=400, height=400)
+    canvas.pack(side=tk.TOP, padx=20, pady=10)
+    image_on_canvas = canvas.create_image(200, 200, anchor='center')
 
-record_frame = ttk.Frame(main)
-record_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
+    record_frame = ttk.Frame(main)
+    record_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-record_button = ttk.Button(record_frame, text='Record', command=start_recording)
-record_button.pack(side=tk.RIGHT, padx=10)
+    record_button = ttk.Button(record_frame, text='Record', command=start_recording)
+    record_button.pack(side=tk.RIGHT, padx=10)
 
-recordP = ttk.Entry(record_frame)
-recordP.pack(side=tk.RIGHT, padx=10)
+    recordP = ttk.Entry(record_frame)
+    recordP.pack(side=tk.RIGHT, padx=10)
 
-run_frame = ttk.Frame(main)
-run_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
+    run_frame = ttk.Frame(main)
+    run_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-run_button = ttk.Button(run_frame, text='Run', command=run_button_clicked)
-run_button.pack(side=tk.RIGHT, padx=10)
+    run_button = ttk.Button(run_frame, text='Run', command=run_button_clicked)
+    run_button.pack(side=tk.RIGHT, padx=10)
 
-runP = ttk.Entry(run_frame)
-runP.pack(side=tk.RIGHT, padx=10)
+    runP = ttk.Entry(run_frame)
+    runP.pack(side=tk.RIGHT, padx=10)
 
-live_frame = ttk.Frame(main)
-live_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
+    live_frame = ttk.Frame(main)
+    live_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-#live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
-#live_button.pack(side=tk.RIGHT, padx=10)
+    #live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
+    #live_button.pack(side=tk.RIGHT, padx=10)
 
-clear_button = ttk.Button(live_frame, text='Clear', command=d.clear_results)
-clear_button.pack(side=tk.RIGHT, padx=10)
+    #This clears both buffers
+    clear_button = ttk.Button(live_frame, text='Clear', command=d.clear_results)
+    clear_button.pack(side=tk.RIGHT, padx=10)
 
-current_result = tk.StringVar()
-result_label = ttk.Label(live_frame, background='white', textvariable=current_result)
-result_label.pack(side=tk.RIGHT, padx=10)
+    #The results buffer has been added where live button used to be
+    #Lines 95 and 96 control the length
+    current_result = tk.StringVar()
+    result_label = ttk.Label(live_frame, background='white', textvariable=current_result)
+    result_label.pack(side=tk.RIGHT, padx=10)
 
-console_output = scrolledtext.ScrolledText(main, height=16)
-console_output.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 20))
+    console_output = scrolledtext.ScrolledText(main, height=16)
+    console_output.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 20))
 
 
-update_frame()
+    update_frame()
 
-main.mainloop()
+    main.mainloop()
 
-d.terminate_cv2()
+    d.terminate_cv2()
+else:
+    print()
+    print('~~~~~~~~~~~~')
+    print('Check line 29')
+    print('~~~~~~~~~~~~')
+    print()
 
 
 
