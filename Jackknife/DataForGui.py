@@ -359,7 +359,7 @@ def run_button_clicked():
   
 def record_video():
     vid_name = recordP.get() + ".mp4"
-    directory = d.settings.raw_template_vids
+    directory = selected.get()
     video_path = os.path.join(directory, vid_name)
 
     fourcc = cv2.VideoWriter_fourcc(*'h264')
@@ -382,7 +382,7 @@ def start_recording():
 if not CAN_ERTIS_CODE:
     main = tk.Tk()
     main.title('ASCL Prototype')
-    main.geometry('')
+    main.geometry('')    
 
     title_frame =  ttk.Frame(main)
 
@@ -400,11 +400,13 @@ if not CAN_ERTIS_CODE:
 
     record_frame = ttk.Frame(main)
     
-    r1 = ttk.Radiobutton(record_frame, text='Template', value='Value 1', variable='')
+    selected = tk.StringVar()
+    selected.set(d.settings.raw_template_vids)
+    r1 = ttk.Radiobutton(record_frame, text='Template', value= d.settings.raw_template_vids, variable=selected)
     r1.grid(
         row=0,column=0, sticky="e")
     
-    r2 = ttk.Radiobutton(record_frame, text='Test', value='Value 2', variable='')
+    r2 = ttk.Radiobutton(record_frame, text='Test', value= d.settings.raw_test_vids, variable=selected)
     r2.grid(
         row=0,column=1, sticky="e")    
     recordP = ttk.Entry(record_frame)
@@ -431,9 +433,11 @@ if not CAN_ERTIS_CODE:
     clear_button.grid(
         row=3,column=1, sticky="e")    
     
-    #test_entry = ttk.Entry(record_frame).grid(
+    #test_entry = ttk.Entry(record_frame)
+    #test_entry.grid(
     #    row=4,column=0, sticky="e")
-    #test_button = ttk.Button(record_frame, text='test', command=d.load_video).grid(
+    #test_button = ttk.Button(record_frame, text='test', command=d.load_video)
+    #test_button.grid(
     #    row=4,column=1, sticky="e")  
 
     console_output = scrolledtext.ScrolledText(main, height=16)
