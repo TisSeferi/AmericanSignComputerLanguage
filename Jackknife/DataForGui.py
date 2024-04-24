@@ -26,7 +26,7 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 DEFAULT_TIMES = 'times.npy'
 
-CAN_ERTIS_CODE = False #Update to False to run
+CAN_ERTIS_CODE = True # Update to False to run
 
 
 HAND_REF = [
@@ -386,9 +386,11 @@ if not CAN_ERTIS_CODE:
 
     title_frame =  ttk.Frame(main)
 
-    title_label = ttk.Label(title_frame, text='ASCL', font='Calibri 24 bold').grid(
+    title_label = ttk.Label(title_frame, text='ASCL', font='Calibri 24 bold')
+    title_label.grid(
         row = 0)
-    update_label = ttk.Label(title_frame, text='MP4 Recording works too, nerd!', font='Calibri 12').grid(
+    update_label = ttk.Label(title_frame, text='MP4 Recording works too, nerd!', font='Calibri 12')
+    update_label.grid(
         row = 1)
 
     canvas_frame = ttk.Frame(main)
@@ -398,27 +400,35 @@ if not CAN_ERTIS_CODE:
 
     record_frame = ttk.Frame(main)
     
-    r1 = ttk.Radiobutton(record_frame, text='Template', value='Value 1', variable='').grid(
+    r1 = ttk.Radiobutton(record_frame, text='Template', value='Value 1', variable='')
+    r1.grid(
         row=0,column=0, sticky="e")
     
-    r2 = ttk.Radiobutton(record_frame, text='Test', value='Value 2', variable='').grid(
+    r2 = ttk.Radiobutton(record_frame, text='Test', value='Value 2', variable='')
+    r2.grid(
         row=0,column=1, sticky="e")    
-    recordP = ttk.Entry(record_frame).grid(
+    recordP = ttk.Entry(record_frame)
+    recordP.grid(
         row=1, column=0, sticky="e")
     
-    record_button = ttk.Button(record_frame, text='Record', command=start_recording).grid(
+    record_button = ttk.Button(record_frame, text='Record', command=start_recording)
+    record_button.grid(
         row=1, column=1, sticky="e")
-    runP = ttk.Entry(record_frame).grid(
+    runP = ttk.Entry(record_frame)
+    runP.grid(
         row=2,column=0, sticky="e")
-    run_button = ttk.Button(record_frame, text='Run', command=run_button_clicked).grid(
+    run_button = ttk.Button(record_frame, text='Run', command=run_button_clicked)
+    run_button.grid(
         row=2,column=1, sticky="e")
 
     #This clears both buffers
     current_result = tk.StringVar()
 
-    result_label = ttk.Label(record_frame, background='white', textvariable=current_result).grid(
+    result_label = ttk.Label(record_frame, background='white', textvariable=current_result)
+    result_label.grid(
         row=3,column=0, sticky="e")
-    clear_button = ttk.Button(record_frame, text='Clear', command=d.clear_results).grid(
+    clear_button = ttk.Button(record_frame, text='Clear', command=d.clear_results)
+    clear_button.grid(
         row=3,column=1, sticky="e")    
     
     #test_entry = ttk.Entry(record_frame).grid(
