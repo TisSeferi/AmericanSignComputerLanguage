@@ -135,6 +135,12 @@ class DataHandler:
 
         self.train_jackknife()
 
+    #def load_video(self):
+    #    print(test_entry.get())
+    #    path = test_entry.get()
+    #    self.terminate_cv2
+    #    self.capture, self.hands = capture_vid(path)
+
     def update_results(self, results):
         self.results_buffer.append(results)
         best = self.current_result
@@ -171,6 +177,7 @@ class DataHandler:
         self.recognizer = jk.Jackknife(templates=self.templates)
 
     def process_video(self, video_name):
+        
         cap, hands = capture_vid(video_name)
 
         data = []
@@ -412,9 +419,12 @@ if not CAN_ERTIS_CODE:
     result_label = ttk.Label(record_frame, background='white', textvariable=current_result).grid(
         row=3,column=0, sticky="e")
     clear_button = ttk.Button(record_frame, text='Clear', command=d.clear_results).grid(
-        row=3,column=1, sticky="e")
-
+        row=3,column=1, sticky="e")    
     
+    #test_entry = ttk.Entry(record_frame).grid(
+    #    row=4,column=0, sticky="e")
+    #test_button = ttk.Button(record_frame, text='test', command=d.load_video).grid(
+    #    row=4,column=1, sticky="e")  
 
     console_output = scrolledtext.ScrolledText(main, height=16)
 
