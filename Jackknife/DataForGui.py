@@ -354,8 +354,8 @@ def record_video():
     directory = d.settings.raw_template_vids
     video_path = os.path.join(directory, vid_name)
 
-    fourcc = cv2.VideoWriter_fourcc('mp4')
-    out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
+    fourcc = cv2.VideoWriter_fourcc(*'h264')
+    out = cv2.VideoWriter(video_path, fourcc, 20, (640, 480))
 
     start_time = time.time()
     while int(time.time() - start_time) < 4:
