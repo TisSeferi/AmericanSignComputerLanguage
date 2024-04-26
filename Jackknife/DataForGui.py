@@ -10,7 +10,6 @@ import collections as col
 import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
-import cv2
 from PIL import Image, ImageTk
 import builtins
 
@@ -25,9 +24,6 @@ DIMS = 2
 NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 DEFAULT_TIMES = 'times.npy'
-
-CAN_ERTIS_CODE = True # Update to False to run
-
 
 HAND_REF = [
     'wrist',
@@ -84,18 +80,12 @@ class Settings:
         #cv2 settings
         self.cv2_resize = (640, 480)
         
-        #Frame Buffer Settings
+        #buffer settings
         self.buffer_window = 2
         self.buffer_fps = 15
 
         self.buffer_frames = self.buffer_window * self.buffer_fps
         self.buffer_length = self.buffer_frames
-
-        #Results Buffer Settings
-        self.results_window = 2
-        self.results_rps = self.buffer_fps
-
-        self.results_length = self.results_window * self.results_rps
 
         #templates
         self.home_folder = str(Path(__file__).resolve().parent.parent) + '\\'
@@ -127,39 +117,10 @@ class DataHandler:
         self.recognizer = None
 
         self.frame_buffer = col.deque()
-        self.results_buffer = col.deque()
-
-        self.current_result = "Filling Buffer"
 
         self.capture, self.hands = capture_vid(0)
 
         self.train_jackknife()
-
-    #def load_video(self):
-    #    print(test_entry.get())
-    #    path = test_entry.get()
-    #    self.terminate_cv2
-    #    self.capture, self.hands = capture_vid(path)
-
-    def update_results(self, results):
-        self.results_buffer.append(results)
-        best = self.current_result
-        if len(self.results_buffer) == self.settings.results_length:
-            self.results_buffer.popleft()
-
-            min = self.results_buffer[0][0]
-            for result in self.results_buffer:
-                if result[0] != -1 and result[0] < min:
-                    min = result[0]
-                    best = result[1]
-
-            self.current_result = best
-
-    def clear_results(self):
-        self.current_result = "Filling Buffer"
-        self.frame_buffer = col.deque()
-        self.results_buffer = col.deque()
-
 
     def terminate_cv2(self):
         self.capture.release()
@@ -177,7 +138,6 @@ class DataHandler:
         self.recognizer = jk.Jackknife(templates=self.templates)
 
     def process_video(self, video_name):
-        
         cap, hands = capture_vid(video_name)
 
         data = []
@@ -252,7 +212,7 @@ class DataHandler:
                 original_print = builtins.print
                 builtins.print = append_to_console 
                 try:
-                    self.update_results(d.classify(trajectory))
+                    d.classify(trajectory)
                 finally:
                     builtins.print = original_print
             threading.Thread(target=run).start()
@@ -300,7 +260,7 @@ class DataHandler:
                 data = self.settings.test_data_folder + data
                 data = np.load(data)           
 
-        return self.recognizer.classify(data)
+        self.recognizer.classify(data)
 
 d = DataHandler()
 mp_hands = mp.solutions.hands
@@ -323,7 +283,6 @@ def clear_console():
 
 def update_frame():
     ret, cv_image = d.capture.read()
-    current_result.set(d.current_result)
     if ret:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         results = hands.process(cv_image)
@@ -359,11 +318,11 @@ def run_button_clicked():
   
 def record_video():
     vid_name = recordP.get() + ".mp4"
-    directory = selected.get()
+    directory = d.settings.raw_template_vids
     video_path = os.path.join(directory, vid_name)
 
-    fourcc = cv2.VideoWriter_fourcc(*'h264')
-    out = cv2.VideoWriter(video_path, fourcc, 20, (640, 480))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4')
+    out = cv2.VideoWriter(video_path, fourcc, 20.0, (640, 480))
 
     start_time = time.time()
     while int(time.time() - start_time) < 4:
@@ -374,96 +333,57 @@ def record_video():
             break
 
     out.release()
+    d.capture.release()
     print("Finished recording")
 
 def start_recording():
     threading.Thread(target=record_video).start()
 
-if not CAN_ERTIS_CODE:
-    main = tk.Tk()
-    main.title('ASCL Prototype')
-    main.geometry('')    
 
-    title_frame =  ttk.Frame(main)
+main = tk.Tk()
+main.title('ASCL Prototype')
+main.geometry('600x900')
 
-    title_label = ttk.Label(title_frame, text='ASCL', font='Calibri 24 bold')
-    title_label.grid(
-        row = 0)
-    update_label = ttk.Label(title_frame, text='MP4 Recording works too, nerd!', font='Calibri 12')
-    update_label.grid(
-        row = 1)
+title_label = ttk.Label(main, text='ASCL', font='Calibri 24 bold')
+title_label.pack(pady=10)
 
-    canvas_frame = ttk.Frame(main)
-    canvas = tk.Canvas(canvas_frame, width=400, height=400)
-    canvas.grid(row=0, column = 0)
-    image_on_canvas = canvas.create_image(200, 200, anchor='center')
+canvas = tk.Canvas(main, width=400, height=400)
+canvas.pack(side=tk.TOP, padx=20, pady=10)
+image_on_canvas = canvas.create_image(200, 200, anchor='center')
 
-    record_frame = ttk.Frame(main)
-    
-    selected = tk.StringVar()
-    selected.set(d.settings.raw_template_vids)
-    r1 = ttk.Radiobutton(record_frame, text='Template', value= d.settings.raw_template_vids, variable=selected)
-    r1.grid(
-        row=0,column=0, sticky="e")
-    
-    r2 = ttk.Radiobutton(record_frame, text='Test', value= d.settings.raw_test_vids, variable=selected)
-    r2.grid(
-        row=0,column=1, sticky="e")    
-    recordP = ttk.Entry(record_frame)
-    recordP.grid(
-        row=1, column=0, sticky="e")
-    
-    record_button = ttk.Button(record_frame, text='Record', command=start_recording)
-    record_button.grid(
-        row=1, column=1, sticky="e")
-    runP = ttk.Entry(record_frame)
-    runP.grid(
-        row=2,column=0, sticky="e")
-    run_button = ttk.Button(record_frame, text='Run', command=run_button_clicked)
-    run_button.grid(
-        row=2,column=1, sticky="e")
+record_frame = ttk.Frame(main)
+record_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-    #This clears both buffers
-    current_result = tk.StringVar()
+record_button = ttk.Button(record_frame, text='Record', command=start_recording)
+record_button.pack(side=tk.RIGHT, padx=10)
 
-    result_label = ttk.Label(record_frame, background='white', textvariable=current_result)
-    result_label.grid(
-        row=3,column=0, sticky="e")
-    clear_button = ttk.Button(record_frame, text='Clear', command=d.clear_results)
-    clear_button.grid(
-        row=3,column=1, sticky="e")    
-    
-    #test_entry = ttk.Entry(record_frame)
-    #test_entry.grid(
-    #    row=4,column=0, sticky="e")
-    #test_button = ttk.Button(record_frame, text='test', command=d.load_video)
-    #test_button.grid(
-    #    row=4,column=1, sticky="e")  
+recordP = ttk.Entry(record_frame)
+recordP.pack(side=tk.RIGHT, padx=10)
 
-    console_output = scrolledtext.ScrolledText(main, height=16)
+run_frame = ttk.Frame(main)
+run_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
 
-    title_frame.grid(
-        row=0, column=0, columnspan=3)
-    canvas_frame.grid(
-        row=1, column=0, columnspan=1)
-    record_frame.grid(
-        row=1, column=2, sticky='s')
-    console_output.grid(
-        row=3, columnspan=3)
-    
+run_button = ttk.Button(run_frame, text='Run', command=run_button_clicked)
+run_button.pack(side=tk.RIGHT, padx=10)
+
+runP = ttk.Entry(run_frame)
+runP.pack(side=tk.RIGHT, padx=10)
+
+live_frame = ttk.Frame(main)
+live_frame.pack(side=tk.TOP, fill=tk.X, pady=(10, 0))
+
+live_button = ttk.Button(live_frame, text='Live', command=d.live_process)
+live_button.pack(side=tk.RIGHT, padx=10)
+
+console_output = scrolledtext.ScrolledText(main, height=16)
+console_output.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 20))
 
 
-    update_frame()
+update_frame()
 
-    main.mainloop()
+main.mainloop()
 
-    d.terminate_cv2()
-else:
-    print()
-    print('~~~~~~~~~~~~')
-    print('Check line 29')
-    print('~~~~~~~~~~~~')
-    print()
+d.terminate_cv2()
 
 
 
