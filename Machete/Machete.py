@@ -3,6 +3,7 @@ import numpy as np
 import math
 import Jackknife.FeedData as FeedData
 from MVector import Vector
+import MacheteTemplate
 
 class Machete:
     def __init__(self, theta, epsilon):
@@ -11,6 +12,7 @@ class Machete:
 
 
     def initialize_template(self, samplePts, theta, epsilon):
+        self.template = MacheteTemplate()
         self.template.buffer = []
         self.template.row = [[],[]]
         self.template.T = []
