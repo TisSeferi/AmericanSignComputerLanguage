@@ -1,6 +1,7 @@
 import MacheteElement
 import MacheteTrigger
 import MVector as Vector
+import MMAthematics as Mathematics
 
 class MacheteTemplate:
     def __init__(self, sample, device_id):
@@ -51,5 +52,12 @@ class MacheteTemplate:
                 continue
 
             resampled.append(rotated[ii])
+        
+        sampleCount = resampled.size
+
+        minimum, maximum = Mathematics.bounding_box(resampled)
+        diag = maximum.l2norm(minimum)
+
+        dp_points = self.douglas_peucker_density(resampled, diag * 0.010)
             
 
