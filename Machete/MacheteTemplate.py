@@ -59,5 +59,38 @@ class MacheteTemplate:
         diag = maximum.l2norm(minimum)
 
         dp_points = self.douglas_peucker_density(resampled, diag * 0.010)
-            
+
+    #We'll need to think on whether this implementation is necessary, do we WANT mouse type??
+        #if (device_type == DeviceType.MOUSE):
+        #    ptCnt = len(dp_points)
+        #    v1 = dpPoints[1] - dpPoints[0]
+        #    v2 = dpPoints[2] - dpPoints[1]
+        #    ratio = v1.l2norm() / v2.l2norm()
+#
+        #    if ratio < 0.2:
+        #        dpPoints.remove(0)
+        #        ptCnt = ptCnt - 1
+#
+        #    v1 = dp_points[ptCnt - 2] - dp_points[ptCnt - 3]
+        #    v2 = dp_points[ptCnt - 1] - dp_points[ptCnt - 2]
+#
+        #    ratio + v2.l2norm() / v1.l2norm()
+#
+        #    if ratio < 0.2:
+        #        dpPoints.remove(len(dpPoints - 1))
+        #        ptCnt = ptCnt - 1
+
+        points = dpPoints
+
+        self.vectors = Mathematics.vectorize(resampled, normalized=True)
+
+        f2l_vector = points[points.size - 1] - points[0]
+        f2l_length = f2l_vector.l2Norm()
+        closedness = f2l_length
+        closedness /= Mathematics.PathLength(resampled)
+        f2l_vector.Normalize()
+
+        weightClosedness = (1.0 -f2l_length) / diag
+        
+
 
