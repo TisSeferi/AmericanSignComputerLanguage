@@ -385,7 +385,7 @@ title_frame =  ttk.Frame(main)
 title_label = ttk.Label(title_frame, text='ASCL', font='Calibri 24 bold')
 title_label.grid(
     row = 0)
-update_label = ttk.Label(title_frame, text='MP4 Recording works too, nerd!', font='Calibri 12')
+update_label = ttk.Label(title_frame, font='Calibri 12')
 update_label.grid(
     row = 1)
 
