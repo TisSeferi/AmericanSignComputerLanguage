@@ -130,4 +130,89 @@ class MacheteTemplate:
         curr = current[-1]
 
         #I CANT TELL WHERE THESE .Funcs ARE BEING CREATED?
-        return (curr.startFrameNo - 1, curr.EndFrameNo)
+        return (curr.startFrameNo - 1, curr.endFrameNo)
+    
+    def upate(self, buffer, pt, nvec, frameNo, length):
+        previous = self.dtw[self.currentIndex]
+
+        self.currentIndex += self.currentIndex
+        self.currentIndex %= 2
+
+        current = self.dtw[self.currentIndex]
+
+        current[0].startFrameNo = frameNo
+
+        for col in range(1, self.vectorCount):
+            dot = nvec.dot(self.vectors[col - 1])
+            cost = 1.0 - max(-1.0, min(1.0, dot))
+            cost = cost **2
+
+            n1 = current[col - 1]
+            n2 = previous[col - 1]
+            n3 = previous[col]
+
+            extend = n1
+            minimum = n1.GetNormalizedWarpingPathCost()
+
+            if n2.GetNormalizedWarpingPathCost() < minimum:
+                extend = n2
+                minimum = n2.GetNormalizedWarpingPathCost()
+
+            if n3.GetNormalizedWarpingPathCost() < minimum:
+                extend = n3
+                minimum = n3.GetNormalizedWarpingPathCost()
+
+            current[col].upate(extend, frameNo, cost, length)
+
+            curr = current[self.vectorCount]
+
+            startFrameNo = curr.startFrameNo
+            endFrameNo = curr.endFrameNo
+            durationFrameCount = endFrameNo - startFrameNo + 1
+            cf = 1.0
+
+            #AGAIN NOT REALLY SURE IF WE NEED THIS SO I WILL LEAVE IT OUT FOR NOW
+
+            #if (device_id == DeviceType.MOUSE)
+            #{
+            #    double cf_closedness = 2.0;
+            #    double cf_f2l = 2.0;
+#
+            #    if (durationFrameCount < buffer.Count() - 1)
+            #    {
+            #        // Get first to last vector
+            #        Vector vec = buffer[-1] - buffer[-(int) durationFrameCount];
+            #        double total = current[vectorCount].total;
+            #        double vlength = vec.L2Norm();
+            #        double closedness1 = vlength / total;
+#
+            #        vec /= vlength;
+            #        
+            #        // Closedness
+            #        cf_closedness = Math.Max(closedness1, closedness);
+            #        cf_closedness /= Math.Min(closedness1, closedness);
+            #        cf_closedness = 1 + weightClosedness * (cf_closedness - 1.0);
+            #        cf_closedness = Math.Min(2.0, cf_closedness);
+#
+            #        // End direction
+            #        double f2l_dot = f2l_Vector.Dot(vec);
+            #        f2l_dot = 1.0 - Math.Max(-1.0, Math.Min(1.0, f2l_dot));
+            #        cf_f2l = 1.0 + (f2l_dot / 2.0) * weightF2l;
+            #        cf_f2l = Math.Min(2.0, cf_f2l);
+#
+            #        cf = cf_closedness * cf_f2l;
+            #    }
+            #}
+
+            ret = curr.GetNormalizedWarpingPathCost()
+
+            if durationFrameCount < self.minimumFrameCount:
+                cf *=1000
+
+                self.trigger.upate(frameNo, ret, cf, curr.startFrameNo, curr.endFrameNo)
+
+                _t = self.trigger.getThreshold()
+
+                self.result.upate(ret * cf, _t, curr.startFrameNo, curr.endFrameNo, frameNo)
+
+                
