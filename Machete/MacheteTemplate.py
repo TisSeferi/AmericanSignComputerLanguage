@@ -1,7 +1,7 @@
 import MacheteElement
 import MacheteTrigger
 import MVector as Vector
-import MMAthematics as Mathematics
+import MMathematics as Mathematics
 import ContinuousResult
 
 class MacheteTemplate:
