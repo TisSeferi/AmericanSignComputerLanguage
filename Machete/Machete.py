@@ -4,6 +4,7 @@ import math
 import Jackknife.FeedData as FeedData
 from MVector import Vector
 import MacheteTemplate
+from CircularBuffer import CircularBuffer
 
 class Machete:
     def __init__(self, theta, epsilon):
