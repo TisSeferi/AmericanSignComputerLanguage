@@ -7,7 +7,7 @@ class Mathematics:
         min_point = trajectory[0].clone()
         max_point = trajectory[0].clone()
 
-        for ii in range(1, trajectory.size()):
+        for ii in range(1, len(trajectory)):
             min_point.minimum(ii)
             max_point.maximum(ii)
 
@@ -65,13 +65,13 @@ class Mathematics:
     def douglas_peucker_density(points, splits, minimum_threshold):
         splits.clear()
 
-        for ii in range(points.size()):
+        for ii in range(len(points)):
             splits.append([ii, 0])
 
         splits[0][1] = float('inf')
-        splits[splits.size() - 1][1] = float('inf')
+        splits[len(splits) - 1][1] = float('inf')
         
-        Mathematics.douglas_peucker_r_density(points, splits, 0, points.size() - 1, minimum_threshold)
+        Mathematics.douglas_peucker_r_density(points, splits, 0, len(points) - 1, minimum_threshold)
         splits.sort(key=lambda x: x[1], reverse=True)
 
     @staticmethod
@@ -104,7 +104,7 @@ class Mathematics:
     @staticmethod
     def vectorize(trajectory, normalize=True):
         vectors = []
-        for ii in range(1, trajectory.size()):
+        for ii in range(1, len(trajectory)):
             vec = trajectory[ii] - trajectory[ii - 1]
             if normalize:
                 vec = vec.normalize()
@@ -114,6 +114,6 @@ class Mathematics:
     @staticmethod
     def path_length(points):
         ret = 0
-        for ii in range(1, points.size()):
+        for ii in range(1, len(points)):
             ret += points[ii].l2norm(points[ii - 1])
         return ret

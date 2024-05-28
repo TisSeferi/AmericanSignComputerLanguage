@@ -11,43 +11,35 @@ class MacheteTemplate:
         self.vectors = []
         self.device_id = device_id
         self.cr_options = cr_options 
-        self.result = None          
-        
-        self.minimumFrameCount = 0
-        self.maximumFrameCount = 0
+        self.result = None      
+
+        self.minimum_frame_count = 0
+        self.maximum_frame_count = 0
         self.closedness = 0.0       
-        self.f2l_Vector = Vector.Vector()      
-        self.weightClosedness = 0.0 
-        self.weightF2l = 0.0        
-        self.vectorCount = 0        
+        self.f2l_vector = Vector()      
+        self.weight_closedness = 0.0 
+        self.weight_f2l = 0.0        
+        self.vector_count = 0       
         
         self.dtw = [[], []]         
-        self.currentIndex = 0       
-        self.sampleCount = 0        
-        self.trigger = MacheteTrigger.MacheteTrigger() 
+        self.current_index = 0       
+        self.sample_count = 0        
+        self.trigger = MacheteTrigger() 
 
         resampled = []
         self.prepare(device_id, resampled, filtered)
-        self.vectorCount = self.vectors.size()
+        self.vector_count = len(self.vectors)
 
-        self.result = ContinuousResult(self.cr_options, self.sample.gesture_id, self.sample)
+
+        self.result = ContinuousResult(cr_options, sample.gesture_id, sample)
 
     def prepare(self, device_type, resampled, filtered=True):
-        rotated = []
-        dpPoints = []
-
+        rotated = self.sample.filtered_trajectory if filtered else self.sample.trajectory
+        resampled.append(Vector(rotated[0]))
         self.device_id = device_type
 
-        if filtered:
-            rotated = self.sample.filtered_trajectory
-        else:
-            rotated = self.sample.trajectory
-
-        resampled.append(Vector(rotated[0]))
-
-        rotated_size = rotated.size()
-        for ii in range(1, rotated_size):
-            count = resampled.size - 1
+        for ii in range(1, len(rotated)):
+            count = len(resampled) - 1
             length = resampled[count].l2norm(rotated[ii])
 
         #This is only referenced once on line 75 of MacheteTemplate???
@@ -56,7 +48,7 @@ class MacheteTemplate:
 
             resampled.append(rotated[ii])
         
-        sampleCount = resampled.size
+        self.sample_count = len(resampled)
 
         minimum, maximum = Mathematics.bounding_box(resampled)
         diag = maximum.l2norm(minimum)
@@ -83,18 +75,18 @@ class MacheteTemplate:
         #        dpPoints.remove(len(dpPoints - 1))
         #        ptCnt = ptCnt - 1
 
-        self.points = dpPoints
+        self.points = dp_points
 
         self.vectors = Mathematics.vectorize(resampled, normalized=True)
 
-        f2l_vector = self.points[self.points.size - 1] - self.points[0]
+        f2l_vector = self.points[len(self.points) - 1] - self.points[0]
         f2l_length = f2l_vector.l2Norm()
-        closedness = f2l_length
-        closedness /= Mathematics.path_length(resampled)
-        f2l_vector.Normalize()
+        self.closedness = f2l_length
+        self.closedness /= Mathematics.path_length(resampled)
+        f2l_vector.normalize()
 
-        weightClosedness = (1.0 - f2l_length) / diag
-        weightF2l = min(1.0, 2.0 * f2l_length / diag)
+        self.weightClosedness = (1.0 - f2l_length) / diag
+        self.weightF2l = min(1.0, 2.0 * f2l_length / diag)
 
 
         #I NEED HELP WRITING LINES 141 THROUGH 182 in https://github.com/ISUE/Machete/blob/main/Assets/Scripts/Machete/MacheteTemplate.cs
@@ -110,15 +102,15 @@ class MacheteTemplate:
         self.currentIndex
 
         #NOT SURE WHAT THIS IS?
-        startAngleDegrees = 65.0
+        start_angle_degrees = 20.0 if self.device_id == 'MOUSE' else 65.0
 
         #NOT SURE IF WE NEED THIS?
         #if (DeviceType.MOUSE == device_id)
         #   startAngleDegrees = 20.0
 
         for ridx in range(2):
-            for cidx in range(self.vectorCount + 1):
-                self.dtw[ridx].append(MacheteElement(cidx, startAngleDegrees))
+            for cidx in range(self.vector_count + 1):
+                self.dtw[ridx].append(MacheteElement(cidx, start_angle_degrees))
 
         self.trigger.reset()
 
@@ -126,49 +118,49 @@ class MacheteTemplate:
         self.reset_elements()
 
     def segmentation(self):
-        current = self.dtw[self.currentIndex]
+        current = self.dtw[self.current_index]
         curr = current[-1]
 
         #I CANT TELL WHERE THESE .Funcs ARE BEING CREATED?
-        return (curr.startFrameNo - 1, curr.endFrameNo)
+        return (curr.start_frame_no - 1, curr.end_frame_no)
     
-    def upate(self, buffer, pt, nvec, frameNo, length):
-        previous = self.dtw[self.currentIndex]
+    def update(self, buffer, pt, nvec, frame_no, length):
+        previous = self.dtw[self.current_index]
 
-        self.currentIndex += self.currentIndex
+        self.current_index += self.current_index
         self.currentIndex %= 2
 
         current = self.dtw[self.currentIndex]
 
-        current[0].startFrameNo = frameNo
+        current[0].start_frame_no = frame_no
 
         for col in range(1, self.vectorCount):
             dot = nvec.dot(self.vectors[col - 1])
             cost = 1.0 - max(-1.0, min(1.0, dot))
-            cost = cost **2
+            cost = cost ** 2
 
             n1 = current[col - 1]
             n2 = previous[col - 1]
             n3 = previous[col]
 
             extend = n1
-            minimum = n1.GetNormalizedWarpingPathCost()
+            minimum = n1.get_normalized_warping_path_cost()
 
-            if n2.GetNormalizedWarpingPathCost() < minimum:
+            if n2.get_normalized_warping_path_cost() < minimum:
                 extend = n2
-                minimum = n2.GetNormalizedWarpingPathCost()
+                minimum = n2.get_normalized_warping_path_cost()
 
-            if n3.GetNormalizedWarpingPathCost() < minimum:
+            if n3.get_normalized_warping_path_cost() < minimum:
                 extend = n3
-                minimum = n3.GetNormalizedWarpingPathCost()
+                minimum = n3.get_normalized_warping_path_cost()
 
-            current[col].upate(extend, frameNo, cost, length)
+            current[col].update(extend, frame_no, cost, length)
 
-            curr = current[self.vectorCount]
+            curr = current[self.vector_count]
 
-            startFrameNo = curr.startFrameNo
-            endFrameNo = curr.endFrameNo
-            durationFrameCount = endFrameNo - startFrameNo + 1
+            start_frame_no = curr.start_frame_no
+            end_frame_no = curr.end_frame_no
+            duration_frame_count = end_frame_no - start_frame_no + 1
             cf = 1.0
 
             #AGAIN NOT REALLY SURE IF WE NEED THIS SO I WILL LEAVE IT OUT FOR NOW
@@ -204,15 +196,15 @@ class MacheteTemplate:
             #    }
             #}
 
-            ret = curr.GetNormalizedWarpingPathCost()
+            ret = curr.get_normalized_warping_path_cost()
 
-            if durationFrameCount < self.minimumFrameCount:
-                cf *=1000
+            if duration_frame_count < self.minimum_frame_count:
+                cf *= 1000
 
-                self.trigger.upate(frameNo, ret, cf, curr.startFrameNo, curr.endFrameNo)
+            self.trigger.upate(frame_no, ret, cf, curr.start_frame_no, curr.end_frame_no)
 
-                _t = self.trigger.getThreshold()
+            _t = self.trigger.get_threshold()
 
-                self.result.upate(ret * cf, _t, curr.startFrameNo, curr.endFrameNo, frameNo)
+            self.result.upate(ret * cf, _t, curr.start_frame_no, curr.end_frame_no, frame_no)
 
                 
