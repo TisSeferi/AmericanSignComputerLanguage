@@ -1,4 +1,4 @@
-from Machete.MVector import Vector
+from MVector import Vector
 
 
 class Sample:

@@ -3,8 +3,8 @@ from MVector import Vector
 from MacheteTemplate import MacheteTemplate
 from MacheteTrigger import MacheteTrigger
 from CircularBuffer import CircularBuffer
-from ContinuousResult import ContinuousResult, ContinuousResultOptions
-from MacheteSample import MacheteSample
+from ContinuousResult import ContinuousResult
+from MacheteSample import Sample
 
 class Machete:
     def __init__(self, device_type, cr_options):
@@ -16,7 +16,7 @@ class Machete:
         self.last_frame_no = -1
         self.device_fps = -1
         self.best_score = float('inf')
-        self.best_template = MacheteTemplate()
+        self.best_template = None
         self.last_pt = []
 
     def get_training_set(self):

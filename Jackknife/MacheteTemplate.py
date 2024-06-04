@@ -16,7 +16,7 @@ class MacheteTemplate:
         self.minimum_frame_count = 0
         self.maximum_frame_count = 0
         self.closedness = 0.0       
-        self.f2l_vector = Vector()      
+        self.f2l_vector = []      
         self.weight_closedness = 0.0 
         self.weight_f2l = 0.0        
         self.vector_count = 0       
@@ -24,7 +24,7 @@ class MacheteTemplate:
         self.dtw = [[], []]         
         self.current_index = 0       
         self.sample_count = 0        
-        self.trigger = MacheteTrigger() 
+        self.trigger = MacheteTrigger.MacheteTrigger() 
 
         resampled = []
         self.prepare(device_id, resampled, filtered)

@@ -13,6 +13,11 @@ from tkinter import scrolledtext
 import cv2
 from PIL import Image, ImageTk
 import builtins
+from Machete import Machete as Machete
+from ContinuousResult import ContinuousResult
+from ContinuousResult import ContinuousResultOptions
+from MacheteSample import Sample
+from MVector import Vector
 
 X = 0
 Y = 1
@@ -128,9 +133,11 @@ class DataHandler:
 
         self.current_result = "Filling Buffer"
 
-        self.capture, self.hands = capture_vid(1)
+        #This depends on the user which is something we might need to look into!!
+        self.capture, self.hands = capture_vid(0)
 
         self.train_jackknife()
+        self.machete = Machete(device_type=None, cr_options=ContinuousResultOptions())
 
     #def load_video(self):
     #    print(test_entry.get())
@@ -243,6 +250,21 @@ class DataHandler:
         if len(self.frame_buffer) == self.settings.buffer_length:
             self.frame_buffer.popleft()
             trajectory = np.array(self.frame_buffer.copy())
+
+            sample = Sample(0, 0, 0)
+
+            self.machete.add_sample(sample, filtered=True)
+
+            for ii in range(0, len(trajectory)):
+                pt = Vector(trajectory[ii])
+                machete_results = []
+                self.machete.process_frame(pt, ii, machete_results)
+
+                for result in machete_results:
+                    if result.Triggered():
+                        segmented_trajectory = trajectory[result.startFrameNo:result.endFrameNo + 1]
+                        classification_result = self.recognizer.classify(segmented_trajectory)
+                        self.update_results(classification_result)
 
             def run():
 
