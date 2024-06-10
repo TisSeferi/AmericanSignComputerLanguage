@@ -1,9 +1,10 @@
 import math
+
 from MVector import Vector
 from MacheteTemplate import MacheteTemplate
 from MacheteTrigger import MacheteTrigger
 from CircularBuffer import CircularBuffer
-from ContinuousResult import ContinuousResult, ContinuousResultOptions
+from ContinuousResult import ContinuousResult
 from MacheteSample import Sample
 import numpy as np
 import FeedData
@@ -21,6 +22,12 @@ class Machete:
         self.best_template = None
         self.last_pt = []
 
+    #Hey Corey check this out
+    def prepare(self):
+        templates = FeedData.assemble_templates()
+        for t in templates:
+            self.add_array_sample(t)
+
     def get_training_set(self):
         return self.training_set
 
@@ -30,6 +37,12 @@ class Machete:
     def clear(self):
         self.templates.clear()
         self.last_frame_no = -1
+
+    def add_array_sample(self, trajectory, filtered=None):
+        samp = Sample(0,0,0)
+        samp.add_trajectory(trajectory)
+        self.add_sample(samp, filtered)
+
 
     def add_sample(self, sample, filtered):
         size = len(sample.trajectory) * 5
@@ -84,17 +97,8 @@ class Machete:
             self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)
             results.append(self.templates[ii].result)    
 
-cr_options = ContinuousResultOptions()
-m = Machete(device_type=None, cr_options=cr_options)
+m = Machete(None, ContinuousResult)
 samp = Sample(0,0,0)
-trajectory_data = np.load('tests/test.npy')
-samp.add_trajectory([Vector(t.tolist()) for t in trajectory_data])
+samp.add_trajectory(np.load('tests/test.npy'))
 
-m.add_sample(samp, filtered=False)
-machete_ret = []
-for frame_no, frame in enumerate(trajectory_data):
-    m.process_frame(Vector(frame.tolist()), frame_no, machete_ret)
-
-for result in machete_ret:
-    if result.triggered():
-        print(f"Gesture recognized with score: {result.score}")
+m.add_sample(samp)
