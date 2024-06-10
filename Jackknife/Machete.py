@@ -3,7 +3,7 @@ from MVector import Vector
 from MacheteTemplate import MacheteTemplate
 from MacheteTrigger import MacheteTrigger
 from CircularBuffer import CircularBuffer
-from ContinuousResult import ContinuousResult
+from ContinuousResult import ContinuousResult, ContinuousResultOptions
 from MacheteSample import Sample
 import numpy as np
 import FeedData
@@ -84,8 +84,17 @@ class Machete:
             self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)
             results.append(self.templates[ii].result)    
 
-m = Machete(None, ContinuousResult)
+cr_options = ContinuousResultOptions()
+m = Machete(device_type=None, cr_options=cr_options)
 samp = Sample(0,0,0)
-samp.add_trajectory(np.load('tests/test.npy'))
+trajectory_data = np.load('tests/test.npy')
+samp.add_trajectory([Vector(t.tolist()) for t in trajectory_data])
 
-m.add_sample(samp)
+m.add_sample(samp, filtered=False)
+machete_ret = []
+for frame_no, frame in enumerate(trajectory_data):
+    m.process_frame(Vector(frame.tolist()), frame_no, machete_ret)
+
+for result in machete_ret:
+    if result.triggered():
+        print(f"Gesture recognized with score: {result.score}")
