@@ -50,7 +50,7 @@ def assemble_templates():
     
     return templates
 
-
+#returns data
 def process_video(video_name):
     t = time.time()
     cap = cv2.VideoCapture(video_name)

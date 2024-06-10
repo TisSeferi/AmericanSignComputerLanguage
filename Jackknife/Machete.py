@@ -5,6 +5,8 @@ from MacheteTrigger import MacheteTrigger
 from CircularBuffer import CircularBuffer
 from ContinuousResult import ContinuousResult
 from MacheteSample import Sample
+import numpy as np
+import FeedData
 
 class Machete:
     def __init__(self, device_type, cr_options):
@@ -81,3 +83,9 @@ class Machete:
         for ii in range(0, len(self.templates)):
             self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)
             results.append(self.templates[ii].result)    
+
+m = Machete(None, ContinuousResult)
+samp = Sample(0,0,0)
+samp.add_trajectory(np.load('tests/test.npy'))
+
+m.add_sample(samp)
