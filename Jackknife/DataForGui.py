@@ -19,6 +19,7 @@ from ContinuousResult import ContinuousResultOptions
 
 X = 0
 Y = 1
+Z = 2
 
 LIVE_BOOT_TIME = 0
 PRE_RECORDED_BOOT_TIME = 1
@@ -73,10 +74,12 @@ def landmarks_to_frame(results):
             for handLms in landmarks:
                 # Convert landmarks to dataframe
                 points = handLms.landmark
-                frame = np.zeros((NUM_POINTS, DIMS))
+                frame = np.zeros((NUM_POINTS * DIMS))
                 for ii, lm in enumerate(points):
-                    frame[ii][X] = lm.x
-                    frame[ii][Y] = lm.y
+                    ii = ii * 3
+                    frame[ii + X] = lm.x
+                    frame[ii + Y]= lm.y
+                    frame[ii + Z] = lm.z
         return frame 
     
 class Settings:
