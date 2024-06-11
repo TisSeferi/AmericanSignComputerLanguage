@@ -67,6 +67,19 @@ def capture_vid(video_name=1):
 
     return (cap, mp.solutions.hands.Hands())
 
+#def landmarks_to_frame(results):
+#    if results.multi_hand_landmarks:
+#        landmarks = [results.multi_hand_landmarks[0]]
+#        if landmarks:
+#            for handLms in landmarks:
+#                # Convert landmarks to dataframe
+#                points = handLms.landmark
+#                frame = np.zeros((NUM_POINTS * DIMS))
+#                for ii, lm in enumerate(points):
+#                    frame[ii][X] = lm.x
+#                    frame[ii][Y] = lm.y
+#        return frame 
+    
 def landmarks_to_frame(results):
     if results.multi_hand_landmarks:
         landmarks = [results.multi_hand_landmarks[0]]

@@ -37,7 +37,33 @@ HAND_REF = [
     'pinky_mcp', 'pinky_pip', 'pinky_dip', 'pinky_tip',
 ]
 
-
+#def landmarks_to_frame(results):
+#    if results.multi_hand_landmarks:
+#        landmarks = [results.multi_hand_landmarks[0]]
+#        if landmarks:
+#            for handLms in landmarks:
+#                # Convert landmarks to dataframe
+#                points = handLms.landmark
+#                frame = np.zeros((NUM_POINTS * DIMS))
+#                for ii, lm in enumerate(points):
+#                    frame[ii][X] = lm.x
+#                    frame[ii][Y] = lm.y
+#        return frame 
+    
+def landmarks_to_frame(results):
+    if results.multi_hand_landmarks:
+        landmarks = [results.multi_hand_landmarks[0]]
+        if landmarks:
+            for handLms in landmarks:
+                # Convert landmarks to dataframe
+                points = handLms.landmark
+                frame = np.zeros((NUM_POINTS * DIMS))
+                for ii, lm in enumerate(points):
+                    ii = ii * 3
+                    frame[ii + X] = lm.x
+                    frame[ii + Y]= lm.y
+                    frame[ii + Z] = lm.z
+        return frame 
 
 
 def assemble_templates():
@@ -140,22 +166,7 @@ def live_process():
         results = hands.process(imgRGB)
 
         # Extracting Landmarks
-        if results.multi_hand_landmarks:
-            landmarks = [results.multi_hand_landmarks[0]]
-            if landmarks:
-                for handLms in landmarks:
-                    # Convert landmarks to dataframe
-                    points = handLms.landmark
-                    for ii, lm in enumerate(points):
-                        frame[ii][X] = lm.x
-                        frame[ii][Y] = lm.y
-            data.append(frame.copy())
-        else:
-            pass
-            #for ii in range(NUM_POINTS):
-            #    frame[ii][X] = -1
-            #    frame[ii][Y] = -1
-
+        data = landmarks_to_frame(results)
         
         if len(data) == BUFFER_FRAMES - 1:
             data.popleft()
