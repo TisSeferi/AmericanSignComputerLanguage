@@ -11,10 +11,11 @@ import collections as col
 
 X = 0
 Y = 1
+Z = 2
 
 USE_DATAFRAMES = False
 NUM_POINTS = 21
-DIMS = 2
+DIMS = 3
 NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 CV2_RESIZE = (640, 480)
@@ -25,7 +26,8 @@ BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
 BUFFER_LENGTH = BUFFER_FRAMES
 
-RAW_VIDS_FOLDER = 'TestVideos/'
+RAW_VIDS_FOLDER = 'templatevids/'
+
 TEMPLATES = str(Path(__file__).resolve().parent.parent / 'templates')
 
 HAND_REF = [
@@ -108,18 +110,7 @@ def process_video(video_name):
         results = hands.process(imgRGB)
 
         # Extracting Landmarks
-        if results.multi_hand_landmarks:
-            landmarks = [results.multi_hand_landmarks[0]]
-            if landmarks:
-                for handLms in landmarks:
-                    # Convert landmarks to dataframe
-                    points = handLms.landmark
-                    d = np.zeros((NUM_POINTS, 2))
-                    for id, lm in enumerate(points):
-                        d[id][0] = lm.x
-                        d[id][1] = lm.y
-
-                    data.append(d)
+        data.append(landmarks_to_frame(results))
 
         success, img = cap.read()
 
@@ -166,11 +157,15 @@ def live_process():
         results = hands.process(imgRGB)
 
         # Extracting Landmarks
-        data = landmarks_to_frame(results)
+        data.append(landmarks_to_frame(results))
         
         if len(data) == BUFFER_FRAMES - 1:
             data.popleft()
+            
             trajectory = np.array(data.copy())
+            print()
+            print(trajectory)
+            print()
             t1 = threading.Thread(target = recognizer.classify, args = ((trajectory),))
             print(t1.start())
             
@@ -186,6 +181,7 @@ def save_template(path):
     name = path.split('.')[0]
     path = RAW_VIDS_FOLDER + path
     data = process_video(path)
+    print(data)
     np.save(TEMPLATES + "/" + name, data)
     print(TEMPLATES + "/" + name)
     # print(data)
@@ -205,24 +201,9 @@ def classify_example(test):
 
 
 
-#save_test('test.mp4')
+#save_template('purple2.mp4')
 #classify_example(process_video('test .mp4'))
-#extract_from_videos()
+#
+# extract_from_videos()
+
 live_process()
-
-
-
-# print('Running Recognition')
-# 
-# t = time.time()
-# 
-# for str in os.listdir('TestVideos'):
-#     str = 'TestVideos/' + str
-#     Process_Video(str)
-# 
-# t = time.time() - t
-# print('Elapsed Time: ' + "%.2f" % t)
-#extract_from_videos()
-
-#live_process()
-#print(assemble_templates())

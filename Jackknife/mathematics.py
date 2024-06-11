@@ -6,21 +6,9 @@ import math
 
 
 def flatten(negative):
-    shape = np.shape(negative)
-    dimensions = len(shape)
-
-    if dimensions < 3:
-        print("Cannot flatten")
-        return (negative)
-
-    dim = 1
-    for i in range(1, dimensions):
-        dim *= shape[i]
-
-    shape = (shape[0], dim)
     developed = []
     for index, frame in enumerate(negative):
-        developed.append(Vector(frame.flatten().tolist()))
+        developed.append(Vector(frame.tolist()))
     return developed
 
 

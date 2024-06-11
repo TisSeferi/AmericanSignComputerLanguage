@@ -11,6 +11,7 @@ from JkFeatures import JkFeatures
 import mathematics
 import random as r
 
+
 # Add "JackknifeTemplate" object with parameters "blades" and "sample"
 # Add "JackknifeFeatures" with parameters "blades" and "trajectory"
 # Terms:
@@ -247,6 +248,3 @@ class Distributions:
         return ret
 
 
-#j = Jackknife()
-#data = np.load('test.npy')
-#print(j.classify(mathematics.flatten(data)))

@@ -13,9 +13,6 @@ from tkinter import scrolledtext
 import cv2
 from PIL import Image, ImageTk
 import builtins
-import Machete
-from ContinuousResult import ContinuousResult
-from ContinuousResult import ContinuousResultOptions
 
 X = 0
 Y = 1
@@ -24,9 +21,8 @@ Z = 2
 LIVE_BOOT_TIME = 0
 PRE_RECORDED_BOOT_TIME = 1
 
-NUM_POINTS = 21
-DIMS = 2
-NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
+NUM_POINTS = 63
+
 
 DEFAULT_TIMES = 'times.npy'
 
@@ -50,7 +46,7 @@ def capture_vid(video_name=1):
     if isinstance(video_name, int):
         spot = LIVE_BOOT_TIME
 
-    times = np.load(DEFAULT_TIMES)
+    times = np.zeros(2)
     expected_boot_time = times[spot]
 
     print("Initializing Hand Detector")
@@ -87,11 +83,11 @@ def landmarks_to_frame(results):
             for handLms in landmarks:
                 # Convert landmarks to dataframe
                 points = handLms.landmark
-                frame = np.zeros((NUM_POINTS * DIMS))
+                frame = np.zeros((NUM_POINTS))
                 for ii, lm in enumerate(points):
                     ii = ii * 3
                     frame[ii + X] = lm.x
-                    frame[ii + Y]= lm.y
+                    frame[ii + Y] = lm.y
                     frame[ii + Z] = lm.z
         return frame 
     
