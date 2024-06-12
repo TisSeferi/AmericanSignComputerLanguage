@@ -320,14 +320,15 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
 
-def append_to_console(message):
+def append_to_console(*message_parts, **kwargs):
+    message = ' '.join(map(str, message_parts))
     def do_append():
         console_output.configure(state='normal')
         console_output.insert(tk.END, message + '\n')
         console_output.configure(state='disabled')
         console_output.see(tk.END)
     main.after(0, do_append)
-
+    
 def clear_console():
     console_output.configure(state='normal')
     console_output.delete('1.0', tk.END)
