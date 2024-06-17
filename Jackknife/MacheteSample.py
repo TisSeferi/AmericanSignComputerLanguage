@@ -1,4 +1,4 @@
-from MVector import Vector
+from Vector import Vector
 
 
 class Sample:

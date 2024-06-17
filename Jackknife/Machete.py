@@ -1,6 +1,6 @@
 import math
 
-from MVector import Vector
+from Vector import Vector
 from MacheteTemplate import MacheteTemplate
 from MacheteTrigger import MacheteTrigger
 from CircularBuffer import CircularBuffer

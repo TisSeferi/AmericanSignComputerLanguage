@@ -113,3 +113,22 @@ class Vector:
 
     def pop(self, index=-1):
         return self.data.pop(index)
+    
+    def clone(self):
+        return Vector(self.data.copy())
+
+    def is_zero(self):
+        for ii in range(0, self.size):
+            if self.data[ii] != 0.0:
+                return False
+        return True
+
+    def minimum(self, other):
+        for ii in range(0, self.size):
+            if self.data[ii] < other.data[ii]:
+                self.data = other.data
+
+    def maximum(self, other):
+        for ii in range(0, self.size):
+            if self.data[ii] > other.data[ii]:
+                self.data = other.data

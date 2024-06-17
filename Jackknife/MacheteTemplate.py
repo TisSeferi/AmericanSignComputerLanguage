@@ -1,7 +1,7 @@
 import MacheteElement
 import MacheteTrigger
-from MVector import Vector
-from MMathematics import Mathematics
+from Vector import Vector
+import mathematics
 import ContinuousResult
 
 class MacheteTemplate:
@@ -50,10 +50,10 @@ class MacheteTemplate:
         
         self.sample_count = len(resampled)
 
-        minimum, maximum = Mathematics.bounding_box(resampled)
+        minimum, maximum = mathematics.bounding_box(resampled)
         diag = maximum.l2norm(minimum)
 
-        dp_points = Mathematics.douglas_peucker_density(resampled, diag * 0.010)
+        dp_points = mathematics.douglas_peucker_density(resampled, diag * 0.010)
 
     #We'll need to think on whether this implementation is necessary, do we WANT mouse type??
         #if (device_type == DeviceType.MOUSE):
@@ -77,12 +77,12 @@ class MacheteTemplate:
 
         self.points = dp_points
 
-        self.vectors = Mathematics.vectorize(resampled, normalized=True)
+        self.vectors = mathematics.vectorize(resampled, normalized=True)
 
         f2l_vector = self.points[len(self.points) - 1] - self.points[0]
         f2l_length = f2l_vector.l2Norm()
         self.closedness = f2l_length
-        self.closedness /= Mathematics.path_length(resampled)
+        self.closedness /= mathematics.path_length(resampled)
         f2l_vector.normalize()
 
         self.weightClosedness = (1.0 - f2l_length) / diag
@@ -201,10 +201,10 @@ class MacheteTemplate:
             if duration_frame_count < self.minimum_frame_count:
                 cf *= 1000
 
-            self.trigger.upate(frame_no, ret, cf, curr.start_frame_no, curr.end_frame_no)
+            self.trigger.update(frame_no, ret, cf, curr.start_frame_no, curr.end_frame_no)
 
             _t = self.trigger.get_threshold()
 
-            self.result.upate(ret * cf, _t, curr.start_frame_no, curr.end_frame_no, frame_no)
+            self.result.update(ret * cf, _t, curr.start_frame_no, curr.end_frame_no, frame_no)
 
                 
