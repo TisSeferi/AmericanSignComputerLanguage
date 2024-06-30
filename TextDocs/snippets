@@ -1,0 +1,81 @@
+        /**
+         * Step forward into calculations. Get next point, filter, segment, recognize
+         */
+        void Step()
+        {
+            List<ContinuousResult> continuousResults = new List<ContinuousResult>();
+            
+            Vector pt = ema_filter.Filter(frames[frame_idx].pt, 1 / (double) parameters.fps);
+            video.Add(pt);
+
+            if (frame_idx == 0)
+            {
+                last_video_vector = pt;
+            }
+            
+            // Check if moved "far enough" if mouse
+            if (frame_idx > 1 && deviceType == DeviceType.MOUSE)
+            {
+                Vector vec = pt - last_video_vector;
+                double weight = vec.Length();
+                
+                if (weight <= 2.0) 
+                    return;
+            
+                last_video_vector = pt;
+            }
+            
+
+            machete.ProcessFrame(pt, frame_idx, continuousResults);
+
+            bool cancel_if_better_score = false;
+            ContinuousResult result = ContinuousResult.SelectResult(
+                continuousResults,
+                cancel_if_better_score);
+
+            // No trigger, return
+            if (result == null)
+            {
+                return;
+            }
+
+            List<Jackknife.Vector> jkbuffer = JackknifeConnector.GetJKBufferFromVideo(
+                video,
+                result.startFrameNo,
+                result.endFrameNo);
+
+            // Check if there was a match
+            double recognizer_d = 0.0f;
+            bool match;
+            match = jackknife.IsMatch(jkbuffer, result.sample.GestureId, out recognizer_d);
+
+            if (match == false)
+            {
+                return;
+            }
+
+            RecognitionResult rresult = new RecognitionResult();
+            rresult.gid = result.gid;
+            rresult.start = result.startFrameNo;
+            rresult.end = result.endFrameNo;
+            rresult.score = recognizer_d;
+
+            match = false;
+
+            for (int ii = 0; ii < rresults.Count; ii++)
+            {
+                if (rresults[ii].Update(rresult))
+                {
+                    match = true;
+                    break;
+                }
+            }
+
+            // if some result was updated for better, continue
+            if (match)
+            {
+                return;
+            }
+
+            rresults.Add(rresult);
+        }
