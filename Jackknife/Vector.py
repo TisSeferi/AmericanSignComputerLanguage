@@ -26,7 +26,7 @@ class Vector:
     
     def __setitem__(self, index, value):
         self.data[index] = value
-    
+
     def __add__(self, other):
         if isinstance(other, Vector):
             if len(self.data) != len(other.data):

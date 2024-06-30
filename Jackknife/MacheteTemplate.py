@@ -33,6 +33,7 @@ class MacheteTemplate:
 
         self.result = ContinuousResult(cr_options, sample.gesture_id, sample)
 
+
     def prepare(self, device_type, resampled, filtered=True):
         rotated = self.sample.filtered_trajectory if filtered else self.sample.trajectory
         resampled.append(Vector(rotated[0]))
@@ -89,11 +90,6 @@ class MacheteTemplate:
         self.weightF2l = min(1.0, 2.0 * f2l_length / diag)
 
 
-        #I NEED HELP WRITING LINES 141 THROUGH 182 in https://github.com/ISUE/Machete/blob/main/Assets/Scripts/Machete/MacheteTemplate.cs
-        #I DO NOT KNOW HOW TO IMPLEMENT THE CONSTRUCTUR WITH OUR CURRENT LAYOUT
-
-
-    #FINISHING THE REST OF THE FUNCTIONS TUESDAY
     def reset_elements(self):
         for ridx in range(0, 2):
             if self.dtw[ridx] is not None:
@@ -101,7 +97,6 @@ class MacheteTemplate:
 
         self.currentIndex
 
-        #NOT SURE WHAT THIS IS?
         start_angle_degrees = 20.0 if self.device_id == 'MOUSE' else 65.0
 
         #NOT SURE IF WE NEED THIS?
@@ -121,9 +116,9 @@ class MacheteTemplate:
         current = self.dtw[self.current_index]
         curr = current[-1]
 
-        #I CANT TELL WHERE THESE .Funcs ARE BEING CREATED?
         return (curr.start_frame_no - 1, curr.end_frame_no)
     
+    #Consume-Input(template, x, frameNumber)
     def update(self, buffer, pt, nvec, frame_no, length):
         previous = self.dtw[self.current_index]
 
