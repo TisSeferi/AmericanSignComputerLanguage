@@ -232,10 +232,4 @@ def vectorize(trajectory, normalize=True):
         vectors.append(vec)
     return vectors
 
-@staticmethod
-def path_length(points):
-    ret = 0
-    for ii in range(1, len(points)):
-        ret += points[ii].l2norm(points[ii - 1])
-    return ret
 

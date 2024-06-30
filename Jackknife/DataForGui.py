@@ -471,19 +471,3 @@ main.mainloop()
 
 d.terminate_cv2()
 
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-

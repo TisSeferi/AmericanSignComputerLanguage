@@ -28,7 +28,9 @@ BUFFER_LENGTH = BUFFER_FRAMES
 
 RAW_VIDS_FOLDER = 'templatevids/'
 
-TEMPLATES = str(Path(__file__).resolve().parent.parent / 'templates')
+HOME = str(Path(__file__).resolve().parent.parent)
+TEMPLATES =  HOME + '\\templates\\'
+TESTS = HOME + '\\testvideos\\'
 
 HAND_REF = [
     'wrist',
@@ -120,9 +122,9 @@ def process_video(video_name):
     return data
 
 
-def live_process():
+def live_process(input = 0):
     print("Starting hand detection")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(input)
     
 
     if not cap.isOpened():
@@ -206,4 +208,4 @@ def classify_example(test):
 #
 # extract_from_videos()
 
-live_process()
+live_process(input = TESTS + "test.mp4")
