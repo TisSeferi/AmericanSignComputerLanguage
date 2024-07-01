@@ -7,8 +7,8 @@ import Jackknife as jk
 from pathlib import Path
 import threading
 import collections as col
-import ffmpeg
-
+from Machete import Machete
+from ContinuousResult import ContinuousResult, ContinuousResultOptions
 
 X = 0
 Y = 1
@@ -135,7 +135,6 @@ def live_process():
     print("HandDetector initialized successfully.")
 
     hands = mp.solutions.hands.Hands()
-
     recognizer = jk.Jackknife(templates = assemble_templates())
 
     # The list for returning the dataframes
@@ -190,13 +189,16 @@ def machete_process(input):
 
     print("HandDetector initialized successfully.")
 
+    cr = []
     hands = mp.solutions.hands.Hands()
-
+    machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
     recognizer = jk.Jackknife(templates = assemble_templates())
 
     # The list for returning the dataframes
     #data = np.zeros((BUFFER_LENGTH, 2))
     data = col.deque()
+    ret = []
+    current_count = 0
     frame = np.zeros((NUM_POINTS, DIMS))
 
     success, img = cap.read()
@@ -215,21 +217,15 @@ def machete_process(input):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = hands.process(imgRGB)
 
+        point = landmarks_to_frame(results)
         # Extracting Landmarks
-        data.append(landmarks_to_frame(results))
-        
-        if len(data) == BUFFER_FRAMES - 1:
-            data.popleft()
-            
-            trajectory = np.array(data.copy())
-            print()
-            print(trajectory)
-            print()
-            t1 = threading.Thread(target = recognizer.classify, args = ((trajectory),))
-            print(t1.start())
-            print("test")
-            
-        success, img = cap.read()
+        data.append(point)
+
+        machete.process_frame(point, current_count, ret)
+
+        print(ret)
+
+        current_count += 1
 
     cap.release()
     cv2.destroyAllWindows()

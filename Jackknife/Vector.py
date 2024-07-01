@@ -17,7 +17,7 @@ class Vector:
         if len(a.data) != len(b.data):
             raise ValueError("Vectors not same length")
         return Vector([(1-t) * a.data[i] + t * b.data[i] for i in range(len(a.data))])
-
+    
     def size(self):
         return len(self.data)
     

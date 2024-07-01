@@ -7,10 +7,9 @@ from CircularBuffer import CircularBuffer
 from ContinuousResult import ContinuousResult
 from MacheteSample import Sample
 import numpy as np
-import FeedData
 
 class Machete:
-    def __init__(self, device_type, cr_options):
+    def __init__(self, device_type, cr_options, templates):
         self.device_type = device_type
         self.cr_options = cr_options
         self.buffer = CircularBuffer()
@@ -21,10 +20,6 @@ class Machete:
         self.best_score = float('inf')
         self.best_template = None
         self.last_pt = []
-
-    #Hey Corey check this out
-    def prepare(self):
-        templates = FeedData.assemble_templates()
         for t in templates:
             self.add_array_sample(t)
 
@@ -40,9 +35,8 @@ class Machete:
 
     def add_array_sample(self, trajectory, filtered=None):
         samp = Sample(0,0,0)
-        samp.add_trajectory(trajectory)
+        samp.add_trajectory(Vector(trajectory))
         self.add_sample(samp, filtered)
-
 
     def add_sample(self, sample, filtered):
         size = len(sample.trajectory) * 5
@@ -95,10 +89,4 @@ class Machete:
 
         for ii in range(0, len(self.templates)):
             self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)
-            results.append(self.templates[ii].result)    
-
-m = Machete(None, ContinuousResult)
-samp = Sample(0,0,0)
-samp.add_trajectory(np.load('tests/test.npy'))
-
-m.add_sample(samp)
+            results.append(self.templates[ii].result)
