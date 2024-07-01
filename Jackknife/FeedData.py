@@ -7,6 +7,7 @@ import Jackknife as jk
 from pathlib import Path
 import threading
 import collections as col
+import ffmpeg
 
 
 X = 0
@@ -122,7 +123,63 @@ def process_video(video_name):
     return data
 
 
-def live_process(input = 0):
+def live_process():
+    print("Starting hand detection")
+    cap = cv2.VideoCapture(0)
+    
+
+    if not cap.isOpened():
+        print("Error: Failed to open File.")
+        exit()
+
+    print("HandDetector initialized successfully.")
+
+    hands = mp.solutions.hands.Hands()
+
+    recognizer = jk.Jackknife(templates = assemble_templates())
+
+    # The list for returning the dataframes
+    #data = np.zeros((BUFFER_LENGTH, 2))
+    data = col.deque()
+    frame = np.zeros((NUM_POINTS, DIMS))
+
+    success, img = cap.read()
+    while success:
+    # while frame < BUFFER_FRAMES - 1:
+    # For running one recognition instance
+        if not success:
+            print("Error in reading!")
+            cap.release()
+            exit()
+
+        # Image resizing for standardiztion
+        img = cv2.resize(img, CV2_RESIZE)
+
+        # Running recognition
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(imgRGB)
+
+        # Extracting Landmarks
+        data.append(landmarks_to_frame(results))
+        
+        if len(data) == BUFFER_FRAMES - 1:
+            data.popleft()
+            
+            trajectory = np.array(data.copy())
+            print()
+            print(trajectory)
+            print()
+            t1 = threading.Thread(target = recognizer.classify, args = ((trajectory),))
+            print(t1.start())
+            print("test")
+            
+        success, img = cap.read()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+def machete_process(input):
     print("Starting hand detection")
     cap = cv2.VideoCapture(input)
     
@@ -170,11 +227,15 @@ def live_process(input = 0):
             print()
             t1 = threading.Thread(target = recognizer.classify, args = ((trajectory),))
             print(t1.start())
+            print("test")
             
         success, img = cap.read()
 
     cap.release()
     cv2.destroyAllWindows()
+
+def machete_test(input = "test.mp4"):
+    machete_process(TESTS + input)
 
 
 # Web processing test
@@ -203,9 +264,9 @@ def classify_example(test):
 
 
 
-#save_template('purple2.mp4')
-#classify_example(process_video('test .mp4'))
-#
-# extract_from_videos()
 
-live_process(input = TESTS + "test.mp4")
+
+
+machete_test()
+
+
