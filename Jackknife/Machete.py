@@ -35,7 +35,7 @@ class Machete:
 
     def add_array_sample(self, trajectory, filtered=None):
         samp = Sample(0,0,0)
-        samp.add_trajectory(Vector(trajectory))
+        samp.add_trajectory(trajectory[1])
         self.add_sample(samp, filtered)
 
     def add_sample(self, sample, filtered):

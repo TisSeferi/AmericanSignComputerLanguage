@@ -13,8 +13,8 @@ class Sample:
         self.time_s = []
 
     def add_trajectory(self, trajectory):
-        for i in range(0, trajectory.size()):
-            self.trajectory.append(trajectory[i].clone())
+        for i in range(0, len(trajectory)):
+            self.trajectory.append(Vector(trajectory[i]))
 
     def add_time_stamps(self, time_s):
         for i in range (0, len(time_s)):
