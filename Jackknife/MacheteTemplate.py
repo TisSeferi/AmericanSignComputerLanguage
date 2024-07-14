@@ -28,7 +28,7 @@ class MacheteTemplate:
 
         resampled = []
         self.prepare(device_id, resampled, filtered)
-        self.vector_count = len(self.vectors)
+        self.vector_count = self.vectors.size()
 
 
         self.result = ContinuousResult(cr_options, sample.gesture_id, sample)
@@ -36,7 +36,7 @@ class MacheteTemplate:
 
     def prepare(self, device_type, resampled, filtered=True):
         rotated = self.sample.filtered_trajectory if filtered else self.sample.trajectory
-        resampled.append(Vector(rotated[0]))
+        resampled.append(rotated[0])
         self.device_id = device_type
 
         for ii in range(1, len(rotated)):
