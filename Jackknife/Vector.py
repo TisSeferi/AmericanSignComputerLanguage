@@ -54,7 +54,7 @@ class Vector:
         else:
             raise TypeError("Unsupported type")
         
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, (int, float)):
             return Vector([self.data[i] / other for i in range(len(self.data))])
         elif isinstance(other, Vector):

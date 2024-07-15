@@ -75,7 +75,7 @@ class Machete:
             self.last_frame_no += 1
 
         vec = Vector(pt - self.last_pt)
-        segment_length = vec.l2norm()
+        segment_length = vec.magnitude()
 
         if self.device_type == 'MOUSE' and segment_length < 10.0:
             return
@@ -85,7 +85,7 @@ class Machete:
         if segment_length <= 1e-10:
             return
 
-        vec /= segment_length
+        vec = vec / segment_length
 
         for ii in range(0, len(self.templates)):
             self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)

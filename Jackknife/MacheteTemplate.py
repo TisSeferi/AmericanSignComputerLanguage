@@ -131,7 +131,7 @@ class MacheteTemplate:
 
         current[0].start_frame_no = frame_no
 
-        for col in range(1, self.vectorCount):
+        for col in range(1, self.vector_count):
             dot = nvec.dot(self.vectors[col - 1])
             cost = 1.0 - max(-1.0, min(1.0, dot))
             cost = cost ** 2

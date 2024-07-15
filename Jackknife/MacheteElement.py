@@ -32,9 +32,9 @@ class MacheteElement:
             #else:
             #    self.score = float('inf')
 #
-            ##Same thing for start and end frame
-            #self.start_frame_no = -1
-            #self.end_frame_no = -1
+            #Same thing for start and end frame
+            self.start_frame_no = -1
+            self.end_frame_no = -1
 
     def get_normalized_warping_path_cost(self):
         if self.column == 0:

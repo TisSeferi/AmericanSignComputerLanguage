@@ -192,7 +192,7 @@ def machete_process(input):
     cr = []
     hands = mp.solutions.hands.Hands()
     machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
-    recognizer = jk.Jackknife(templates = assemble_templates())
+    # recognizer = jk.Jackknife(templates = assemble_templates())
 
     # The list for returning the dataframes
     #data = np.zeros((BUFFER_LENGTH, 2))
