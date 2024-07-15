@@ -42,7 +42,8 @@ def z_normalize(points):
 
 def path_length(points):
     ret = 0.0
-    for ii in range(1, points.size()):
+    pointssize = points.size() if isinstance(points, Vector) else len(points)
+    for ii in range(1, pointssize):
         ret += points[ii].l2norm(points[ii - 1])
 
     return ret
@@ -129,12 +130,12 @@ def bounding_box(trajectory):
     max_point = trajectory[0].clone()
 
     for ii in range(1, len(trajectory)):
-        min_point.minimum(ii)
-        max_point.maximum(ii)
+        min_point.minimum(trajectory[ii])
+        max_point.maximum(trajectory[ii])
 
     return min_point, max_point
 
-def douglas_peucker_r_density(self, points, splits, start, end, threshold):
+def douglas_peucker_r_density(points, splits, start, end, threshold):
     
     if (start + 1 > end):
         return
@@ -151,18 +152,18 @@ def douglas_peucker_r_density(self, points, splits, start, end, threshold):
         d2 = AC.dot(AC) - numer * numer / denom
 
         if denom == 0.0:
-            d2 = AC.l2norm()
+            d2 = AC.magnitude()
 
         v1 = points[ii] - points[start]
         v2 = points[end] - points[ii]
 
-        l1 = v1.l2norm()
-        l2 = v2.l2norm()
+        l1 = v1.magnitude()
+        l2 = v2.magnitude()
 
-        self.dot = v1.dot(v2)
-        self.dot /= (l1 * l2 > 0) if (l1 * l2) else 1.0
-        self.dot = max(-1.0, min(1.0, self.dot))
-        angle = math.acos(self.dot)
+        dot = v1.dot(v2)
+        dot /= (l1 * l2 > 0) if (l1 * l2) else 1.0
+        dot = max(-1.0, min(1.0, dot))
+        angle = math.acos(dot)
         d2 *= angle / math.pi
 
         if d2 > largest:

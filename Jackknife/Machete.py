@@ -43,7 +43,7 @@ class Machete:
         if size > self.buffer.size():
             self.buffer.resize(size)
 
-        template = MacheteTemplate(sample, self.device_type, self.cr_options, filtered)
+        template = MacheteTemplate(sample=sample, device_id=self.device_type, cr_options=self.cr_options, filtered=filtered)
         self.templates.append(template)
         self.training_set.append(sample)
         self.reset()

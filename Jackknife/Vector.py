@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 class Vector:
     def __init__(self, data, cmp_cnt=None):
@@ -10,6 +11,8 @@ class Vector:
             self.data = [data for col in range(cmp_cnt)]
         elif isinstance(data, Vector):
             self.data = data.data.copy()
+        elif isinstance(data, np.ndarray):
+            self.data = data.tolist()
 
     
     @staticmethod
@@ -118,17 +121,17 @@ class Vector:
         return Vector(self.data.copy())
 
     def is_zero(self):
-        for ii in range(0, self.size):
+        for ii in range(0, self.size()):
             if self.data[ii] != 0.0:
                 return False
         return True
 
     def minimum(self, other):
-        for ii in range(0, self.size):
-            if self.data[ii] < other.data[ii]:
-                self.data = other.data
+        for ii in range(0, self.size()):
+            if self.data[ii] > other.data[ii]:
+                self.data[ii] = other.data[ii]
 
     def maximum(self, other):
-        for ii in range(0, self.size):
-            if self.data[ii] > other.data[ii]:
-                self.data = other.data
+        for ii in range(0, self.size()):
+            if self.data[ii] < other.data[ii]:
+                self.data[ii] = other.data[ii]

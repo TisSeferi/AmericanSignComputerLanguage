@@ -1,8 +1,8 @@
-import MacheteElement
-import MacheteTrigger
+from MacheteElement import MacheteElement
+from MacheteTrigger import MacheteTrigger
 from Vector import Vector
 import mathematics
-import ContinuousResult
+from ContinuousResult import ContinuousResult
 
 class MacheteTemplate:
     def __init__(self, sample, device_id, cr_options, filtered=True):
@@ -24,11 +24,11 @@ class MacheteTemplate:
         self.dtw = [[], []]         
         self.current_index = 0       
         self.sample_count = 0        
-        self.trigger = MacheteTrigger.MacheteTrigger() 
+        self.trigger = MacheteTrigger() 
 
         resampled = []
         self.prepare(device_id, resampled, filtered)
-        self.vector_count = self.vectors.size()
+        self.vector_count = len(self.vectors)
 
 
         self.result = ContinuousResult(cr_options, sample.gesture_id, sample)
@@ -36,6 +36,7 @@ class MacheteTemplate:
 
     def prepare(self, device_type, resampled, filtered=True):
         rotated = self.sample.filtered_trajectory if filtered else self.sample.trajectory
+
         resampled.append(rotated[0])
         self.device_id = device_type
 
@@ -54,7 +55,7 @@ class MacheteTemplate:
         minimum, maximum = mathematics.bounding_box(resampled)
         diag = maximum.l2norm(minimum)
 
-        dp_points = mathematics.douglas_peucker_density(resampled, diag * 0.010)
+        dp_points = mathematics.douglas_peucker_density_trajectory(resampled, diag * 0.010)
 
     #We'll need to think on whether this implementation is necessary, do we WANT mouse type??
         #if (device_type == DeviceType.MOUSE):
@@ -69,19 +70,20 @@ class MacheteTemplate:
 #
         #    v1 = dp_points[ptCnt - 2] - dp_points[ptCnt - 3]
         #    v2 = dp_points[ptCnt - 1] - dp_points[ptCnt - 2]
-#
+#````
         #    ratio + v2.l2norm() / v1.l2norm()
 #
         #    if ratio < 0.2:
         #        dpPoints.remove(len(dpPoints - 1))
         #        ptCnt = ptCnt - 1
 
-        self.points = dp_points
+        #CPitt: DP returns a tuple and we want to grab the points, not the useless -inf data. 
+        self.points = dp_points[1]
 
-        self.vectors = mathematics.vectorize(resampled, normalized=True)
+        self.vectors = mathematics.vectorize(resampled, normalize=True)
 
         f2l_vector = self.points[len(self.points) - 1] - self.points[0]
-        f2l_length = f2l_vector.l2Norm()
+        f2l_length = f2l_vector.magnitude()
         self.closedness = f2l_length
         self.closedness /= mathematics.path_length(resampled)
         f2l_vector.normalize()
@@ -95,7 +97,7 @@ class MacheteTemplate:
             if self.dtw[ridx] is not None:
                 self.dtw[ridx].clear()
 
-        self.currentIndex
+        self.current_index = 0
 
         start_angle_degrees = 20.0 if self.device_id == 'MOUSE' else 65.0
 
@@ -123,9 +125,9 @@ class MacheteTemplate:
         previous = self.dtw[self.current_index]
 
         self.current_index += self.current_index
-        self.currentIndex %= 2
+        self.current_index %= 2
 
-        current = self.dtw[self.currentIndex]
+        current = self.dtw[self.current_index]
 
         current[0].start_frame_no = frame_no
 
