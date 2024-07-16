@@ -22,20 +22,20 @@ def z_normalize(points):
     for ii in range(n):
         mean += points[ii]
 
-    mean = mean.__div__(n)
+    mean = mean / (n)
 
     for ii in range(n):
         for jj in range(m):
             diff = points[ii][jj] - mean[jj]
             variance[jj] += diff ** 2
 
-    variance = variance.__div__(n-1)
+    variance = variance / (n-1)
 
     for ii in range(m):
         variance[ii] = variance[ii] ** .5
 
     for ii in range(n):
-        points[ii] = (points[ii]-mean).__div__(variance)
+        points[ii] = (points[ii]-mean) / (variance)
 
     return points
 
@@ -64,7 +64,7 @@ def resample(points, n=8, variance=None):
             rr = r.random()
             intervals.data[ii] = 1.0 + rr * b
 
-        intervals = intervals.__div__(intervals.sum())
+        intervals = intervals / (intervals.sum())
 
     assert abs(intervals.sum() - 1 < .00001)
 

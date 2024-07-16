@@ -217,16 +217,16 @@ class Distributions:
 
     def rejection_threshold(self, beta):
 
-        self.neg = self.neg.__div__(self.neg.sum())
+        self.neg = self.neg / (self.neg.sum())
         self.neg.cumulative_sum()
         assert (abs(self.neg[self.neg.size() - 1] - 1.0) < .00001)
 
-        self.pos = self.pos.__div__(self.pos.sum())
+        self.pos = self.pos / (self.pos.sum())
         self.pos.cumulative_sum()
         assert (abs(self.pos[self.pos.size() - 1] - 1.0) < .00001)
 
         alpha = 1.0 / (1.0 + beta * beta)
-        precision = self.pos.__div__((self.pos + self.neg))
+        precision = self.pos / ((self.pos + self.neg))
 
         recall = self.pos
 
