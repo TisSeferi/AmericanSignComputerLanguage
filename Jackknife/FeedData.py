@@ -223,8 +223,14 @@ def machete_process(input):
 
         machete.process_frame(point, current_count, ret)
 
-        print(ret)
-
+        result = ContinuousResult.select_result(ret, False)
+        
+        if result is None:
+            return
+        
+        else:
+            print(result)
+        
         current_count += 1
 
     cap.release()
