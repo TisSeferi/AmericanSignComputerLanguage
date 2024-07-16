@@ -44,7 +44,6 @@ class MacheteTemplate:
             count = len(resampled) - 1
             length = resampled[count].l2norm(rotated[ii])
 
-        #This is only referenced once on line 75 of MacheteTemplate???
             if length <= 1e-10:
                 continue
 
@@ -56,26 +55,6 @@ class MacheteTemplate:
         diag = maximum.l2norm(minimum)
 
         dp_points = mathematics.douglas_peucker_density_trajectory(resampled, diag * 0.010)
-
-    #We'll need to think on whether this implementation is necessary, do we WANT mouse type??
-        #if (device_type == DeviceType.MOUSE):
-        #    ptCnt = len(dp_points)
-        #    v1 = dpPoints[1] - dpPoints[0]
-        #    v2 = dpPoints[2] - dpPoints[1]
-        #    ratio = v1.l2norm() / v2.l2norm()
-#
-        #    if ratio < 0.2:
-        #        dpPoints.remove(0)
-        #        ptCnt = ptCnt - 1
-#
-        #    v1 = dp_points[ptCnt - 2] - dp_points[ptCnt - 3]
-        #    v2 = dp_points[ptCnt - 1] - dp_points[ptCnt - 2]
-#````
-        #    ratio + v2.l2norm() / v1.l2norm()
-#
-        #    if ratio < 0.2:
-        #        dpPoints.remove(len(dpPoints - 1))
-        #        ptCnt = ptCnt - 1
 
         #CPitt: DP returns a tuple and we want to grab the points, not the useless -inf data. 
         self.points = dp_points[1]
@@ -101,10 +80,6 @@ class MacheteTemplate:
 
         start_angle_degrees = 20.0 if self.device_id == 'MOUSE' else 65.0
 
-        #NOT SURE IF WE NEED THIS?
-        #if (DeviceType.MOUSE == device_id)
-        #   startAngleDegrees = 20.0
-
         for ridx in range(2):
             for cidx in range(self.vector_count + 1):
                 self.dtw[ridx].append(MacheteElement(cidx, start_angle_degrees))
@@ -124,14 +99,14 @@ class MacheteTemplate:
     def update(self, buffer, pt, nvec, frame_no, length):
         previous = self.dtw[self.current_index]
 
-        self.current_index += self.current_index
+        self.current_index += 1
         self.current_index %= 2
 
         current = self.dtw[self.current_index]
 
         current[0].start_frame_no = frame_no
 
-        for col in range(1, self.vector_count):
+        for col in range(1, self.vector_count + 1):
             dot = nvec.dot(self.vectors[col - 1])
             cost = 1.0 - max(-1.0, min(1.0, dot))
             cost = cost ** 2
@@ -153,55 +128,22 @@ class MacheteTemplate:
 
             current[col].update(extend, frame_no, cost, length)
 
-            curr = current[self.vector_count]
+        curr = current[self.vector_count]
 
-            start_frame_no = curr.start_frame_no
-            end_frame_no = curr.end_frame_no
-            duration_frame_count = end_frame_no - start_frame_no + 1
-            cf = 1.0
+        start_frame_no = curr.start_frame_no
+        end_frame_no = curr.end_frame_no
+        duration_frame_count = end_frame_no - start_frame_no + 1
+        cf = 1.0
 
-            #AGAIN NOT REALLY SURE IF WE NEED THIS SO I WILL LEAVE IT OUT FOR NOW
+        ret = curr.get_normalized_warping_path_cost()
 
-            #if (device_id == DeviceType.MOUSE)
-            #{
-            #    double cf_closedness = 2.0;
-            #    double cf_f2l = 2.0;
-#
-            #    if (durationFrameCount < buffer.Count() - 1)
-            #    {
-            #        // Get first to last vector
-            #        Vector vec = buffer[-1] - buffer[-(int) durationFrameCount];
-            #        double total = current[vectorCount].total;
-            #        double vlength = vec.L2Norm();
-            #        double closedness1 = vlength / total;
-#
-            #        vec /= vlength;
-            #        
-            #        // Closedness
-            #        cf_closedness = Math.Max(closedness1, closedness);
-            #        cf_closedness /= Math.Min(closedness1, closedness);
-            #        cf_closedness = 1 + weightClosedness * (cf_closedness - 1.0);
-            #        cf_closedness = Math.Min(2.0, cf_closedness);
-#
-            #        // End direction
-            #        double f2l_dot = f2l_Vector.Dot(vec);
-            #        f2l_dot = 1.0 - Math.Max(-1.0, Math.Min(1.0, f2l_dot));
-            #        cf_f2l = 1.0 + (f2l_dot / 2.0) * weightF2l;
-            #        cf_f2l = Math.Min(2.0, cf_f2l);
-#
-            #        cf = cf_closedness * cf_f2l;
-            #    }
-            #}
+        if duration_frame_count < self.minimum_frame_count:
+            cf *= 1000
 
-            ret = curr.get_normalized_warping_path_cost()
+        self.trigger.update(frame_no, ret, cf, curr.start_frame_no, curr.end_frame_no)
 
-            if duration_frame_count < self.minimum_frame_count:
-                cf *= 1000
+        _t = self.trigger.get_threshold()
 
-            self.trigger.update(frame_no, ret, cf, curr.start_frame_no, curr.end_frame_no)
-
-            _t = self.trigger.get_threshold()
-
-            self.result.update(ret * cf, _t, curr.start_frame_no, curr.end_frame_no, frame_no)
+        self.result.update(ret * cf, _t, curr.start_frame_no, curr.end_frame_no, frame_no)
 
                 
