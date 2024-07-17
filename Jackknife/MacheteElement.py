@@ -3,38 +3,21 @@ import math
 
 #Lets double check this constructor because I used a mix of stackoverflow and google so I'm not sure it's right?
 class MacheteElement:
-    def __init__(self, column=None, start_angle_degrees=None):
-
-        #I believe this is the default constructor if column isn't being updated yet
-        if column is None:
-            self.score = float('inf')
-            self.start_frame_no = -1
-            self.end_frame_no = -1
-            self.column = 0
-            self.running_score = float('inf')
-            self.total = float('inf')
-
-        #This is the constructor that is called when the column is updated
-        else:
-            self.column = column
-            self.running_score = float('inf')
-            self.total = 1e-10
-
-            if column == 0:
-                angle = math.radians(start_angle_degrees)
-                threshold = 1.0 - math.cos(angle)
-                self.score = threshold ** 2
-
-                self.running_score = 0.0
-                self.total = 0.0
+    def __init__(self, column, start_angle_degrees):
             
-            ##If the column is anything but zero it will reinstatiate score to placeholder
-            #else:
-            #    self.score = float('inf')
-#
-            #Same thing for start and end frame
-            self.start_frame_no = -1
-            self.end_frame_no = -1
+    #This is the constructor that is called when the column is updated
+        self.column = column
+        self.running_score = float('inf')
+        self.total = 1e-10
+
+        if self.column == 0:
+            angle = math.radians(start_angle_degrees)
+            threshold = 1.0 - math.cos(angle)
+            self.score = threshold * threshold
+
+            self.running_score = 0.0
+            self.total = 0.0
+        
 
     def get_normalized_warping_path_cost(self):
         if self.column == 0:

@@ -225,12 +225,8 @@ def machete_process(input):
 
         result = ContinuousResult.select_result(ret, False)
         
-        if result is None:
-            return
-        
-        else:
-            print(result)
-        
+        print(result)
+
         current_count += 1
 
     cap.release()

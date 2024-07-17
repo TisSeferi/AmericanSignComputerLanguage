@@ -1,5 +1,3 @@
-from enum import Enum
-
 class ContinuousResultOptions:
     def __init__(self):
         self.latency_frame_count = 0
@@ -20,17 +18,21 @@ class ContinuousResult:
         self.reset()
         self.boundary = -1
 
-    def reset(self):
+    def triggered(self):
+        return self.state == ResultState.TRIGGER
+    
+    def set_wait_for_start(self):
         self.state = ResultState.WAIT_FOR_START
         self.minimum = float('inf')
         self.score = self.minimum
         self.start_frame_no = -1
         self.end_frame_no = -1
-
-    def triggered(self):
-        return self.state == ResultState.TRIGGER
+    
+    def reset(self):
+        self.set_wait_for_start()
     
     def update(self, score, threshold, start_frame_no, end_frame_no, current_frame_no):
+        
         if current_frame_no == -2:
             current_frame_no = end_frame_no
 

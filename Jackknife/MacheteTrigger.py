@@ -22,14 +22,14 @@ class MacheteTrigger:
     
     def update(self, frame, score, cf, start, end):
         self.sum += score
-        self.count += 1
+        self.count += 1.0
         score *= cf
 
         self.s1 = self.s2
         self.s2 = self.s3
         self.s3 = score
 
-        mu = self.sum / self.count if self.count != 0 else float('inf')
+        mu = self.sum / self.count
         threshold = mu / 2.0
         
         self.check = False

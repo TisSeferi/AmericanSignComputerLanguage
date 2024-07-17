@@ -17,9 +17,7 @@ class Machete:
         self.training_set = []
         self.last_frame_no = -1
         self.device_fps = -1
-        self.best_score = float('inf')
-        self.best_template = None
-        self.last_pt = []
+        
         for t in templates:
             self.add_array_sample(t)
 
@@ -58,13 +56,13 @@ class Machete:
         self.head = head
         self.tail = tail
 
-        score = self.best_score
-        head = -1
-        tail = -1
+        self.score = self.best_score
+        self.head = -1
+        self.tail = -1
 
         if self.bestTemplate.trigger.check is True:
-            head = self.bestTemplate.trigger.start
-            tail = self.bestTemplate.trigger.end
+            self.head = self.bestTemplate.trigger.start
+            self.tail = self.bestTemplate.trigger.end
 
     def process_frame(self, pt, frame_no, results):
         if self.last_frame_no == -1:

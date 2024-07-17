@@ -109,7 +109,7 @@ class MacheteTemplate:
         for col in range(1, self.vector_count + 1):
             dot = nvec.dot(self.vectors[col - 1])
             cost = 1.0 - max(-1.0, min(1.0, dot))
-            cost = cost ** 2
+            cost = cost * cost
 
             n1 = current[col - 1]
             n2 = previous[col - 1]
