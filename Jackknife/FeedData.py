@@ -189,7 +189,7 @@ def machete_process(input):
 
     print("HandDetector initialized successfully.")
 
-    cr = []
+    cr = ContinuousResultOptions()
     hands = mp.solutions.hands.Hands()
     machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
     # recognizer = jk.Jackknife(templates = assemble_templates())
@@ -225,7 +225,8 @@ def machete_process(input):
 
         result = ContinuousResult.select_result(ret, False)
         
-        print(result)
+        if result:
+            print(result.gid)
 
         current_count += 1
 

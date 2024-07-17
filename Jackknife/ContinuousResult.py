@@ -17,6 +17,7 @@ class ContinuousResult:
         self.sample = sample
         self.reset()
         self.boundary = -1
+        self.rejection_threshold = 0
 
     def triggered(self):
         return self.state == ResultState.TRIGGER
@@ -93,7 +94,7 @@ class ContinuousResult:
                 continue
             
             triggered.append(result)
-            print(result)
+            # print(result)
 
         if len(triggered) == 0:
             return None

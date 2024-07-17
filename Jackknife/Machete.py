@@ -32,7 +32,7 @@ class Machete:
         self.last_frame_no = -1
 
     def add_array_sample(self, trajectory, filtered=None):
-        samp = Sample(0,0,0)
+        samp = Sample(0, trajectory[0], 0)
         samp.add_trajectory(trajectory[1])
         self.add_sample(samp, filtered)
 
