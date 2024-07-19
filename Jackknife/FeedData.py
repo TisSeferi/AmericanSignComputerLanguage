@@ -9,6 +9,7 @@ import threading
 import collections as col
 from Machete import Machete
 from ContinuousResult import ContinuousResult, ContinuousResultOptions
+from JackknifeConnector import JKConnector as jkc
 
 X = 0
 Y = 1
@@ -85,7 +86,6 @@ def assemble_templates():
 def process_video(video_name):
     t = time.time()
     cap = cv2.VideoCapture(video_name)
-
     duration = cap.get(cv2.CAP_PROP_POS_MSEC)
 
     if not cap.isOpened():
@@ -224,9 +224,22 @@ def machete_process(input):
         machete.process_frame(point, current_count, ret)
 
         result = ContinuousResult.select_result(ret, False)
-        
         if result:
+            
             print(result.gid)
+        
+        #TODO I need to figure out whether I need JK.IsMatch or JK.Classify, as it stands we don't have the support for isMatch from our previous implementation
+        #I'm going to try to use classify for now, but i'm not sure what parameter from result, fits that function
+
+        jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
+
+        recognizer_d = 0.0
+        
+        match, recognizer_d = jk.Jackknife.is_match(jk_buffer, result.gid)
+
+        if match:
+            print("Matched")
+
 
         current_count += 1
 
