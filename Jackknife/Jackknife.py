@@ -43,28 +43,27 @@ class Jackknife:
         self.templates.append(JkTemplate(self.blades, sample=sample, gid=gid))
 
     def is_match(self, trajectory, gid):
-        trajectory = mathematics.flatten(trajectory)
         features = JkFeatures(self.blades, trajectory)
         best_score = float('inf')
         ret = False
 
-        for tid in range(0, self.templates.size()):
+        for tid in range(0, len(self.templates)):
             if self.templates[tid].gesture_id != gid:
                 continue
 
             cf = 1
 
-            if JkBlades.cf_abs_distance:
+            if self.blades.cf_abs_distance:
                 cf *= 1.0 / max(0.01, features.abs.dot(self.templates[tid].features.abs))
 
-            if JkBlades.cf_bb_widths:
+            if self.blades.cf_bb_widths:
                 cf *= 1.0 / max(0.01, features.bb.dot(self.templates[tid].features.bb))
 
             temp = self.templates[tid]
             temp.cf = cf
             self.templates[tid] = temp
 
-            if JkBlades.lower_bound:
+            if self.blades.lower_bound:
                 temp_lb = self.templates[tid]
                 temp_lb.lb = cf * self.lower_bound(features.vecs, self.templates[tid])
                 self.templates[tid] = temp_lb
@@ -79,7 +78,7 @@ class Jackknife:
                 best_score = d
 
         score = best_score
-        return ret, score
+        return ret
 
     def classify(self, trajectory):
         if CLEAR_TERMINAL:

@@ -192,6 +192,9 @@ def machete_process(input):
     cr = ContinuousResultOptions()
     hands = mp.solutions.hands.Hands()
     machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
+    print("Machete initialized successfully.")
+    recognizer_options = jk.Jackknife(templates = assemble_templates())
+    print("Recognizer initialized successfully.")
     # recognizer = jk.Jackknife(templates = assemble_templates())
 
     # The list for returning the dataframes
@@ -224,22 +227,15 @@ def machete_process(input):
         machete.process_frame(point, current_count, ret)
 
         result = ContinuousResult.select_result(ret, False)
-        if result:
-            
-            print(result.gid)
         
-        #TODO I need to figure out whether I need JK.IsMatch or JK.Classify, as it stands we don't have the support for isMatch from our previous implementation
-        #I'm going to try to use classify for now, but i'm not sure what parameter from result, fits that function
-
+      
         jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
-
-        recognizer_d = 0.0
-        
-        match, recognizer_d = jk.Jackknife.is_match(jk_buffer, result.gid)
-
-        if match:
-            print("Matched")
-
+        if result is not None:
+            match = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
+            if match:
+                print("Matched")
+            else:
+                print("Not Matched")
 
         current_count += 1
 
