@@ -49,6 +49,8 @@ class Jackknife:
 
         for tid in range(0, len(self.templates)):
             if self.templates[tid].gesture_id != gid:
+               # print("This is templates gid " + self.templates[tid].gesture_id + " This is gid " + gid)
+
                 continue
 
             cf = 1
@@ -71,6 +73,7 @@ class Jackknife:
             d = self.templates[tid].cf
             d *= self.DTW(features.vecs, self.templates[tid].features.vecs)
 
+            print("This is the score " + str(d) + " This is the rejection threshold " + str(self.templates[tid].rejection_threshold))
             if d < self.templates[tid].rejection_threshold:
                 ret = True
 
@@ -78,7 +81,7 @@ class Jackknife:
                 best_score = d
 
         score = best_score
-        return ret
+        return ret, score
 
     def classify(self, trajectory):
         if CLEAR_TERMINAL:

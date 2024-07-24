@@ -230,12 +230,14 @@ def machete_process(input):
         
       
         jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
+
         if result is not None:
-            match = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
+            match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
+            #print("This is the match " + str(match) + " This is the gesture id " + result.sample.gesture_id + " This is the score " + str(recognizer_d))
             if match:
                 print("Matched")
-            else:
-                print("Not Matched")
+            #else:
+                #print("Not Matched")
 
         current_count += 1
 
