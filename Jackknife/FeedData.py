@@ -10,6 +10,7 @@ import collections as col
 from Machete import Machete
 from ContinuousResult import ContinuousResult, ContinuousResultOptions
 from JackknifeConnector import JKConnector as jkc
+from JkBlades import JkBlades
 
 X = 0
 Y = 1
@@ -193,7 +194,12 @@ def machete_process(input):
     hands = mp.solutions.hands.Hands()
     machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
     print("Machete initialized successfully.")
-    recognizer_options = jk.Jackknife(templates = assemble_templates())
+    blades = JkBlades()
+    blades.set_ip_defaults()
+    blades.lower_bound = False
+    blades.cf_abs_distance = False
+    blades.cf_bb_widths = False
+    recognizer_options = jk.Jackknife(templates = assemble_templates(), blades = blades)
     print("Recognizer initialized successfully.")
     # recognizer = jk.Jackknife(templates = assemble_templates())
 
@@ -233,7 +239,7 @@ def machete_process(input):
 
         if result is not None:
             match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
-            #print("This is the match " + str(match) + " This is the gesture id " + result.sample.gesture_id + " This is the score " + str(recognizer_d))
+            print("This is the match " + str(match) + " This is the gesture id " + result.sample.gesture_id + " This is the score " + str(recognizer_d))
             if match:
                 print("Matched")
             #else:
