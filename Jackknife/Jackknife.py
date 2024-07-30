@@ -73,7 +73,7 @@ class Jackknife:
             d = self.templates[tid].cf
             d *= self.DTW(features.vecs, self.templates[tid].features.vecs)
 
-           #print("This is the score " + str(d) + " This is the rejection threshold " + str(self.templates[tid].rejection_threshold))
+            #print("This is the score " + str(d) + " This is the rejection threshold " + str(self.templates[tid].rejection_threshold))
             if d < self.templates[tid].rejection_threshold:
                 ret = True
 
