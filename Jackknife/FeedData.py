@@ -44,19 +44,6 @@ HAND_REF = [
     'pinky_mcp', 'pinky_pip', 'pinky_dip', 'pinky_tip',
 ]
 
-#def landmarks_to_frame(results):
-#    if results.multi_hand_landmarks:
-#        landmarks = [results.multi_hand_landmarks[0]]
-#        if landmarks:
-#            for handLms in landmarks:
-#                # Convert landmarks to dataframe
-#                points = handLms.landmark
-#                frame = np.zeros((NUM_POINTS * DIMS))
-#                for ii, lm in enumerate(points):
-#                    frame[ii][X] = lm.x
-#                    frame[ii][Y] = lm.y
-#        return frame 
-    
 def landmarks_to_frame(results):
     if results.multi_hand_landmarks:
         landmarks = [results.multi_hand_landmarks[0]]
@@ -158,6 +145,7 @@ def live_process():
     current_count = 0
     frame = np.zeros((NUM_POINTS, DIMS))
 
+    hand_detected = False
 
     while True:
         success, img = cap.read()
@@ -171,33 +159,34 @@ def live_process():
 
         draw_landmarks(img, results)
 
-        point = landmarks_to_frame(results)
-        data.append(point)
+        if results.multi_hand_landmarks:
+            hand_detected = True  # Set flag to true when a hand is detected
+            point = landmarks_to_frame(results)
+            data.append(point)
 
-        machete.process_frame(point, current_count, ret)
+            machete.process_frame(point, current_count, ret)
 
-        result = ContinuousResult.select_result(ret, False)
+            result = ContinuousResult.select_result(ret, False)
         
-        jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
+            jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
 
-        if result is not None:
-            match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
-            #print("This is the match " + str(match) + " This is the gesture id " + result.sample.gesture_id + " This is the score " + str(recognizer_d))
-            if match:
-                print("Matched " + result.sample.gesture_id + " with score " + str(recognizer_d))
+            if result is not None:
+                match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
+                if match:
+                    print("Matched " + result.sample.gesture_id + " with score " + str(recognizer_d))
 
-        current_count += 1
-        
+            current_count += 1
+        else:
+            if not hand_detected:
+                print("Waiting for hand detection...")  # Inform the user that the program is waiting for a hand
+            # If no hand is detected and hand_detected is False, skip processing
+
         cv2.imshow("Hand Detection", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
-
-
-
-
 
 def machete_process(input):
     print("Starting hand detection")
