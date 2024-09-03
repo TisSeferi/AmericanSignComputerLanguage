@@ -11,6 +11,7 @@ from Machete import Machete
 from ContinuousResult import ContinuousResult, ContinuousResultOptions
 from JackknifeConnector import JKConnector as jkc
 from JkBlades import JkBlades
+import cProfile
 
 X = 0
 Y = 1
@@ -23,8 +24,8 @@ NUM_POINTS_AND_DIMS = NUM_POINTS * DIMS
 
 CV2_RESIZE = (640, 480)
 
-BUFFER_WINDOW = 3 # In seconds
-BUFFER_FPS = 30  # TODO Fix for variable framerate cameras
+BUFFER_WINDOW = 3  # In seconds
+BUFFER_FPS = 15  # TODO Fix for variable framerate cameras
 BUFFER_FRAMES = BUFFER_WINDOW * BUFFER_FPS
 
 BUFFER_LENGTH = BUFFER_FRAMES
@@ -32,7 +33,7 @@ BUFFER_LENGTH = BUFFER_FRAMES
 RAW_VIDS_FOLDER = 'templatevids/'
 
 HOME = str(Path(__file__).resolve().parent.parent)
-TEMPLATES =  HOME + '\\templates\\'
+TEMPLATES = HOME + '\\templates\\'
 TESTS = HOME + '\\testvideos\\'
 
 HAND_REF = [
@@ -43,6 +44,30 @@ HAND_REF = [
     'ring_finger_mcp', 'ring_finger_pip', 'ring_finger_dip', 'ring_finger_tip',
     'pinky_mcp', 'pinky_pip', 'pinky_dip', 'pinky_tip',
 ]
+
+class FrameCaptureThread(threading.Thread):
+    def __init__(self, cap, buffer, frame_skip=2):
+        super().__init__()
+        self.cap = cap
+        self.buffer = buffer
+        self.frame_skip = frame_skip
+        self.running = True
+        self.frame_count = 0
+
+    def run(self):
+        while self.running:
+            success, img = self.cap.read()
+            if not success:
+                break
+
+            if self.frame_count % self.frame_skip == 0:
+                self.buffer.append(img)
+
+            self.frame_count += 1
+
+    def stop(self):
+        self.running = False
+        self.join()
 
 def landmarks_to_frame(results):
     if results.multi_hand_landmarks:
@@ -55,10 +80,9 @@ def landmarks_to_frame(results):
                 for ii, lm in enumerate(points):
                     ii = ii * 3
                     frame[ii + X] = lm.x
-                    frame[ii + Y]= lm.y
+                    frame[ii + Y] = lm.y
                     frame[ii + Z] = lm.z
-        return frame 
-
+        return frame
 
 def assemble_templates():
     templates = []
@@ -67,10 +91,8 @@ def assemble_templates():
         name = path.split('.')[0]
         templates.append((name, np.load(TEMPLATES + '/' + path)))
 
-    
     return templates
 
-#returns data
 def process_video(video_name):
     t = time.time()
     cap = cv2.VideoCapture(video_name)
@@ -80,11 +102,8 @@ def process_video(video_name):
         print("Error: Failed to open File.")
         exit()
 
-    # print("HandDetector initialized successfully.")
-
     hands = mp.solutions.hands.Hands()
 
-    # The list for returning the dataframes
     data = []
     success, img = cap.read()
     while success:
@@ -93,14 +112,10 @@ def process_video(video_name):
             cap.release()
             exit()
 
-        # Image resizing for standardiztion
         img = cv2.resize(img, CV2_RESIZE)
-
-        # Running recognition
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = hands.process(imgRGB)
 
-        # Extracting Landmarks
         data.append(landmarks_to_frame(results))
 
         success, img = cap.read()
@@ -137,30 +152,30 @@ def live_process():
     blades.lower_bound = False
     blades.cf_abs_distance = False
     blades.cf_bb_widths = False
-    recognizer_options = jk.Jackknife(templates = assemble_templates(), blades = blades)
+    recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=blades)
     print("Recognizer initialized successfully.")
+
+    frame_buffer = col.deque(maxlen=10)
+    capture_thread = FrameCaptureThread(cap, frame_buffer)
+    capture_thread.start()
 
     data = col.deque()
     ret = []
     current_count = 0
-    frame = np.zeros((NUM_POINTS, DIMS))
-
     hand_detected = False
 
     while True:
-        success, img = cap.read()
-        if not success:
-            print("Error in reading!")
-            cap.release()
-            exit()
+        if not frame_buffer:
+            continue
 
+        img = frame_buffer.popleft()
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = hands.process(imgRGB)
 
         draw_landmarks(img, results)
 
         if results.multi_hand_landmarks:
-            hand_detected = True  # Set flag to true when a hand is detected
+            hand_detected = True
             point = landmarks_to_frame(results)
             data.append(point)
 
@@ -178,13 +193,13 @@ def live_process():
             current_count += 1
         else:
             if not hand_detected:
-                print("Waiting for hand detection...")  # Inform the user that the program is waiting for a hand
-            # If no hand is detected and hand_detected is False, skip processing
+                print("Waiting for hand detection...")
 
         cv2.imshow("Hand Detection", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    capture_thread.stop()
     cap.release()
     cv2.destroyAllWindows()
 
@@ -192,7 +207,6 @@ def machete_process(input):
     print("Starting hand detection")
     cap = cv2.VideoCapture(input)
     
-
     if not cap.isOpened():
         print("Error: Failed to open File.")
         exit()
@@ -208,12 +222,9 @@ def machete_process(input):
     blades.lower_bound = False
     blades.cf_abs_distance = False
     blades.cf_bb_widths = False
-    recognizer_options = jk.Jackknife(templates = assemble_templates(), blades = blades)
+    recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=blades)
     print("Recognizer initialized successfully.")
-    # recognizer = jk.Jackknife(templates = assemble_templates())
 
-    # The list for returning the dataframes
-    #data = np.zeros((BUFFER_LENGTH, 2))
     data = col.deque()
     ret = []
     current_count = 0
@@ -221,58 +232,42 @@ def machete_process(input):
 
     success, img = cap.read()
     while success:
-    # while frame < BUFFER_FRAMES - 1:
-    # For running one recognition instance
         if not success:
             print("Error in reading!")
             cap.release()
             exit()
 
-        # Image resizing for standardiztion
         img = cv2.resize(img, CV2_RESIZE)
-
-        # Running recognition
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = hands.process(imgRGB)
 
         point = landmarks_to_frame(results)
-        # Extracting Landmarks
         data.append(point)
 
         machete.process_frame(point, current_count, ret)
 
         result = ContinuousResult.select_result(ret, False)
         
-      
         jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
 
         if result is not None:
             match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
-            print("This is the match " + str(match) + " This is the gesture id " + result.sample.gesture_id + " This is the score " + str(recognizer_d))
             if match:
-                print("Matched")
-            #else:
-                #print("Not Matched")
+                print("Matched " + result.sample.gesture_id + " with score " + str(recognizer_d))
 
         current_count += 1
 
     cap.release()
     cv2.destroyAllWindows()
 
-def machete_test(input = "test.mp4"):
+def machete_test(input="test.mp4"):
     machete_process(TESTS + input)
 
-
-# Web processing test
-# Process_Video('https://www.pexels.com/download/video/3959694/')
 def save_template(path):
     name = path.split('.')[0]
     path = RAW_VIDS_FOLDER + path
     data = process_video(path)
-    print(data)
     np.save(TEMPLATES + "/" + name, data)
-    print(TEMPLATES + "/" + name)
-    # print(data)
 
 def save_test(path):
     name = path.split('.')[0]
@@ -284,14 +279,10 @@ def extract_from_videos():
         save_template(path)
 
 def classify_example(test):
-    recognizer = jk.Jackknife(templates = assemble_templates())
+    recognizer = jk.Jackknife(templates=assemble_templates())
     print(recognizer.classify(test))
 
+def run_profile():
+    live_process()
 
-
-
-
-
-#machete_test()
-live_process()
-
+cProfile.run('run_profile()')
