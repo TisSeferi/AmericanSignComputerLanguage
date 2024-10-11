@@ -188,13 +188,13 @@ class Jackknife:
         cost = Vector([])
 
         for i in range(0, v1.size() + 1):
-            cost.append(Vector(v2.size(), float('inf')))
+            cost.append(Vector(float('inf'), v2.size()+1))
 
         cost[0][0] = 0.0
 
         for ii in range(1, v1.size() + 1):
             for jj in range(max(1, ii - math.floor(self.blades.radius)),
-                            min(v2.size(), ii + math.floor(self.blades.radius))):
+                            min(v2.size() + 1, ii + math.floor(self.blades.radius) + 1)):
                 cost[ii][jj] = min(min(cost[ii - 1][jj], cost[ii][jj - 1]), cost[ii - 1][jj - 1])            
                 if self.blades.inner_product and not self.blades.euclidean_distance:
                     cost[ii][jj] += 1.0 - v1[ii - 1].dot(v2[jj - 1])
