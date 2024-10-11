@@ -93,38 +93,6 @@ def assemble_templates():
 
     return templates
 
-def process_video(video_name):
-    t = time.time()
-    cap = cv2.VideoCapture(video_name)
-    duration = cap.get(cv2.CAP_PROP_POS_MSEC)
-
-    if not cap.isOpened():
-        print("Error: Failed to open File.")
-        exit()
-
-    hands = mp.solutions.hands.Hands()
-
-    data = []
-    success, img = cap.read()
-    while success:
-        if not success:
-            print("Error in reading!")
-            cap.release()
-            exit()
-
-        img = cv2.resize(img, CV2_RESIZE)
-        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = hands.process(imgRGB)
-
-        data.append(landmarks_to_frame(results))
-
-        success, img = cap.read()
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    return data
-
 def draw_landmarks(image, landmarks):
     mp_drawing = mp.solutions.drawing_utils
     mp_hands = mp.solutions.hands
@@ -262,6 +230,39 @@ def machete_process(input):
 
 def machete_test(input="test.mp4"):
     machete_process(TESTS + input)
+    
+def process_video(video_name):
+    t = time.time()
+    cap = cv2.VideoCapture(video_name)
+    duration = cap.get(cv2.CAP_PROP_POS_MSEC)
+
+    if not cap.isOpened():
+        print("Error: Failed to open File.")
+        exit()
+
+    hands = mp.solutions.hands.Hands()
+
+    data = []
+    success, img = cap.read()
+    while success:
+        if not success:
+            print("Error in reading!")
+            cap.release()
+            exit()
+
+        img = cv2.resize(img, CV2_RESIZE)
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(imgRGB)
+
+        data.append(landmarks_to_frame(results))
+
+        success, img = cap.read()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    return data
+
 
 def save_template(path):
     name = path.split('.')[0]
@@ -285,4 +286,6 @@ def classify_example(test):
 def run_profile():
     live_process()
 
-cProfile.run('run_profile()')
+#cProfile.run('run_profile()')
+
+extract_from_videos()
