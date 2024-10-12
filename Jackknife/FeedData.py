@@ -286,6 +286,6 @@ def classify_example(test):
 def run_profile():
     live_process()
 
-#cProfile.run('run_profile()')
+cProfile.run('run_profile()')
 
-extract_from_videos()
+#extract_from_videos()
