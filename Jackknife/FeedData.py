@@ -150,10 +150,10 @@ def live_process():
             machete.process_frame(point, current_count, ret)
 
             result = ContinuousResult.select_result(ret, False)
-        
-            jk_buffer = jkc.get_jk_buffer_from_video(data, 0, current_count)
 
             if result is not None:
+                #new change
+                jk_buffer = jkc.get_jk_buffer_from_video(data, result.start_frame_no, result.end_frame_no)
                 match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
                 if match:
                     print("Matched " + result.sample.gesture_id + " with score " + str(recognizer_d))
