@@ -23,18 +23,20 @@ HOME = str(Path(__file__).resolve().parent.parent)
 TEMPLATES = HOME + '\\templates\\'
 TESTS = HOME + '\\testvideos\\'
 
-# Helper function to extract landmark points
 def landmarks_to_frame(results):
     if results.multi_hand_landmarks:
         landmarks = [results.multi_hand_landmarks[0]]
         if landmarks:
-            frame = np.zeros((NUM_POINTS * DIMS))
-            for ii, lm in enumerate(landmarks[0].landmark):
-                idx = ii * 3
-                frame[idx + X] = lm.x
-                frame[idx + Y] = lm.y
-                frame[idx + Z] = lm.z
-            return frame
+            for handLms in landmarks:
+                # Convert landmarks to dataframe
+                points = handLms.landmark
+                frame = np.zeros((NUM_POINTS * DIMS))
+                for ii, lm in enumerate(points):
+                    ii = ii * 3
+                    frame[ii + X] = lm.x
+                    frame[ii + Y] = lm.y
+                    frame[ii + Z] = lm.z
+        return frame
 
 # Load templates
 def assemble_templates():
@@ -64,20 +66,22 @@ def select_result_worker(result_queue, match_queue):
         result = ContinuousResult.select_result(ret, False)
         match_queue.put((result, point, current_count))
 
-# Worker process for recognizing gestures
-def match_worker(match_queue, recognizer_options):
+def match_worker(match_queue, recognizer_options, data_queue):
     while True:
         task = match_queue.get()
         if task is None:
             break
         result, point, current_count = task
         if result:
-            jk_buffer = jkc.get_jk_buffer_from_video([point], result.start_frame_no, result.end_frame_no)
+            data = data_queue.get()
+
+            jk_buffer = jkc.get_jk_buffer_from_video(list(data), result.start_frame_no, result.end_frame_no)
             match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
             if match:
                 print(f"Matched {result.sample.gesture_id} with score {recognizer_d}")
 
-# Main hand detection loop with multiprocessing
+            data_queue.put(data)
+
 def live_process():
     print("Starting hand detection")
     cap = cv2.VideoCapture(0)
@@ -97,11 +101,15 @@ def live_process():
     task_queue = mp.Queue()
     result_queue = mp.Queue()
     match_queue = mp.Queue()
+    data_queue = mp.Queue()
+
+    # Put initial empty deque into the data_queue
+    data_queue.put(col.deque())
 
     # Setup worker processes
     frame_worker = mp.Process(target=process_frame_worker, args=(machete, task_queue, result_queue))
     result_worker = mp.Process(target=select_result_worker, args=(result_queue, match_queue))
-    match_worker_proc = mp.Process(target=match_worker, args=(match_queue, recognizer_options))
+    match_worker_proc = mp.Process(target=match_worker, args=(match_queue, recognizer_options, data_queue))
 
     # Start worker processes
     frame_worker.start()
@@ -120,6 +128,12 @@ def live_process():
 
         if results.multi_hand_landmarks:
             point = landmarks_to_frame(results)
+
+            # Get the current deque from the data_queue, append the point, and put it back
+            data = data_queue.get()
+            data.append(point)
+            data_queue.put(data)
+
             task_queue.put((point, current_count, []))
             current_count += 1
 
