@@ -1,0 +1,173 @@
+import multiprocessing as mp
+import cv2
+import mediapipe as mp_solutions
+import numpy as np
+import os
+import collections as col
+from pathlib import Path
+from Machete import Machete
+from ContinuousResult import ContinuousResult, ContinuousResultOptions
+from JackknifeConnector import JKConnector as jkc
+from JkBlades import JkBlades
+import Jackknife as jk
+
+# Configuration constants
+X, Y, Z = 0, 1, 2
+NUM_POINTS, DIMS = 21, 3
+CV2_RESIZE = (640, 480)
+RAW_VIDS_FOLDER = 'templatevids/'
+HOME = str(Path(__file__).resolve().parent.parent)
+TEMPLATES = HOME + '\\templates\\'
+TESTS = HOME + '\\testvideos\\'
+
+# Frame capture class
+class FrameCaptureThread(mp.Process):
+    def __init__(self, cap, frame_queue, frame_skip=2):
+        super().__init__()
+        self.cap = cap
+        self.frame_queue = frame_queue
+        self.frame_skip = frame_skip
+        self.frame_count = 0
+
+    def run(self):
+        while True:
+            success, img = self.cap.read()
+            if not success:
+                break
+
+            if self.frame_count % self.frame_skip == 0:
+                self.frame_queue.put(img)
+            self.frame_count += 1
+
+def landmarks_to_frame(results):
+    if results.multi_hand_landmarks:
+        landmarks = [results.multi_hand_landmarks[0]]
+        if landmarks:
+            frame = np.zeros((NUM_POINTS * DIMS))
+            for ii, lm in enumerate(landmarks[0].landmark):
+                idx = ii * 3
+                frame[idx + X] = lm.x
+                frame[idx + Y] = lm.y
+                frame[idx + Z] = lm.z
+        return frame
+
+def assemble_templates():
+    templates = []
+    for path in os.listdir(TEMPLATES):
+        name = path.split('.')[0]
+        templates.append((name, np.load(TEMPLATES + '/' + path)))
+    return templates
+
+# Multiprocessing worker to process frames with Machete
+def process_frame_worker(queue, result_queue, machete):
+    while True:
+        task = queue.get()
+        if task is None:
+            break
+        point, current_count, ret = task
+        machete.process_frame(point, current_count, ret)
+        result_queue.put((ret, point, current_count))
+
+# Worker for selecting result
+def select_result_worker(result_queue, match_queue):
+    while True:
+        task = result_queue.get()
+        if task is None:
+            break
+        ret, point, current_count = task
+        result = ContinuousResult.select_result(ret, False)
+        match_queue.put((result, point, current_count))
+
+# Worker for matching gesture
+def match_worker(match_queue, recognizer_options, jk_buffer_queue):
+    while True:
+        task = match_queue.get()
+        if task is None:
+            break
+        result, point, current_count = task
+        if result:
+            jk_buffer = jkc.get_jk_buffer_from_video([point], result.start_frame_no, result.end_frame_no)
+            match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
+            if match:
+                print(f"Matched {result.sample.gesture_id} with score {recognizer_d}")
+
+def live_process():
+    print("Starting hand detection")
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        print("Error: Failed to open File.")
+        exit()
+
+    print("HandDetector initialized successfully.")
+
+    cr = ContinuousResultOptions()
+    hands = mp_solutions.solutions.hands.Hands()
+    machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
+    print("Machete initialized successfully.")
+    blades = JkBlades()
+    blades.set_ip_defaults()
+    recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=blades)
+    print("Recognizer initialized successfully.")
+
+    # Queues
+    frame_queue = mp.Queue()
+    result_queue = mp.Queue()
+    match_queue = mp.Queue()
+
+    # Frame capture process
+    frame_capture = FrameCaptureThread(cap, frame_queue)
+    frame_capture.start()
+
+    # Worker processes
+    process_worker = mp.Process(target=process_frame_worker, args=(frame_queue, result_queue, machete))
+    select_worker = mp.Process(target=select_result_worker, args=(result_queue, match_queue))
+    match_worker_proc = mp.Process(target=match_worker, args=(match_queue, recognizer_options, None))
+
+    process_worker.start()
+    select_worker.start()
+    match_worker_proc.start()
+
+    data = col.deque()
+    current_count = 0
+    hand_detected = False
+
+    while True:
+        if frame_queue.empty():
+            continue
+
+        img = frame_queue.get()
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(imgRGB)
+
+        if results.multi_hand_landmarks:
+            hand_detected = True
+            point = landmarks_to_frame(results)
+            data.append(point)
+
+            frame_queue.put((point, current_count, []))
+            current_count += 1
+        else:
+            if not hand_detected:
+                print("Waiting for hand detection...")
+
+        cv2.imshow("Hand Detection", img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Stop worker processes
+    frame_queue.put(None)
+    result_queue.put(None)
+    match_queue.put(None)
+
+    # Join processes
+    frame_capture.join()
+    process_worker.join()
+    select_worker.join()
+    match_worker_proc.join()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    live_process()
