@@ -1,3 +1,4 @@
+import cProfile
 import multiprocessing as mp
 import cv2
 import mediapipe as mp_solutions
@@ -138,7 +139,7 @@ def live_process():
             current_count += 1
 
         cv2.imshow("Hand Detection", img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
     # Terminate processes
@@ -154,4 +155,7 @@ def live_process():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    live_process()
+    def run_profile():
+        live_process()
+
+    cProfile.run('run_profile()')
