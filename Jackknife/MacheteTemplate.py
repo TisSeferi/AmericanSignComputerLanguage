@@ -143,8 +143,6 @@ class MacheteTemplate:
         self.trigger.update(frame_no, ret, cf, curr.start_frame_no, curr.end_frame_no)
 
         _t = self.trigger.get_threshold()
-        # TODO: Determine why this threshold needs to be doubled. This is a hack to raise the threshold to allow machete to output something for testing
-        _t = _t*1.5
         self.result.update(ret * cf, _t, curr.start_frame_no, curr.end_frame_no, frame_no)
 
                 
