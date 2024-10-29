@@ -56,9 +56,9 @@ def process_frame_worker(machete, task_queue, result_queue):
         task = task_queue.get()
         if task is None:
             break
-        point, current_count, ret = task
-        machete.process_frame(point, current_count, ret)
-        result_queue.put((ret, point, current_count))
+        point, current_frame_num, ret = task
+        machete.process_frame(point, current_frame_num, ret)
+        result_queue.put((ret, point, current_frame_num))
 
 # Worker process for selecting results
 def select_result_worker(result_queue, match_queue):
@@ -66,20 +66,21 @@ def select_result_worker(result_queue, match_queue):
         task = result_queue.get()
         if task is None:
             break
-        ret, point, current_count = task
+        ret, point, current_frame_num = task
         result = ContinuousResult.select_result(ret, False)
-        match_queue.put((result, point, current_count))
+        match_queue.put((result, point, current_frame_num))
 
 def match_worker(match_queue, recognizer_options, data_queue):
     while True:
         task = match_queue.get()
         if task is None:
             break
-        result, point, current_count = task
+        result, point, current_frame_num = task
         if result:
             data = data_queue.get()
 
-            jk_buffer = jkc.get_jk_buffer_from_video(list(data), result.start_frame_no, result.end_frame_no)
+            # Look back at the previous frames starting from the end and counting back the length of the proposed gesture (given by start_frame_no-current_frame_num )
+            jk_buffer = jkc.get_jk_buffer_from_video(list(data), result.start_frame_no-current_frame_num, result.end_frame_no - current_frame_num - 1)
             match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
             if match:
                 print(f"Matched {result.sample.gesture_id} with score {recognizer_d}")
@@ -114,8 +115,9 @@ def live_process():
     match_queue = mp.Queue()
     data_queue = mp.Queue()
 
-    # Put initial empty deque into the data_queue
-    data_queue.put(col.deque())
+    # Put initial empty deque into the data_queue. Set max size to 100 for testing.
+    # Everything that refers to the data_queue will be counting back from the end of the queue.
+    data_queue.put(col.deque(maxlen=100))
 
     # Setup worker processes
     frame_worker = mp.Process(target=process_frame_worker, args=(machete, task_queue, result_queue))
@@ -127,7 +129,7 @@ def live_process():
     result_worker.start()
     match_worker_proc.start()
 
-    current_count = 0
+    current_frame_num = 0
     while True:
         success, img = cap.read()
         if not success:
@@ -145,8 +147,8 @@ def live_process():
             data.append(point)
             data_queue.put(data)
 
-            task_queue.put((point, current_count, []))
-            current_count += 1
+            task_queue.put((point, current_frame_num, []))
+            current_frame_num += 1
 
         cv2.imshow("Hand Detection", img)
         if cv2.waitKey(10) & 0xFF == ord('q'):
