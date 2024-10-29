@@ -12,6 +12,7 @@ from ContinuousResult import ContinuousResult, ContinuousResultOptions
 from JackknifeConnector import JKConnector as jkc
 from JkBlades import JkBlades
 
+import pickle
 X = 0
 Y = 1
 Z = 2
@@ -96,8 +97,15 @@ def live_process():
     machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
     blades = JkBlades()
     blades.set_ip_defaults()
-    recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=blades)
-
+    
+    if os.path.exists("recognizer.pkl"):
+        with open("recognizer.pkl", 'rb') as f:
+            recognizer_options = pickle.load(f)
+    else:
+        recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=blades)
+        with open("recognizer.pkl", 'wb') as f:
+            pickle.dump(recognizer_options, f)
+    
     # Setup multiprocessing queues
     task_queue = mp.Queue()
     result_queue = mp.Queue()
