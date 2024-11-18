@@ -167,7 +167,4 @@ def live_process():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    def run_profile():
-        live_process()
-
-    cProfile.run('run_profile()')
+    live_process()
