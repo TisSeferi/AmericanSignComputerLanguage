@@ -114,6 +114,8 @@ class GestureApp:
         if not self.cap.isOpened():
             self.log("Error: Cannot access the webcam.")
             return
+        
+        self.hands = mp_solutions.solutions.hands.Hands()
 
         # Setup queues
         self.task_queue = mp.Queue()
@@ -161,9 +163,7 @@ class GestureApp:
             img = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
             self.canvas.imgtk = img
             self.canvas.create_image(0, 0, anchor=tk.NW, image=img)
-
-            hands = mp_solutions.solutions.hands.Hands()
-            results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            results = self.hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             if results.multi_hand_landmarks:
                 point = landmarks_to_frame(results)
                 data = self.data_queue.get()
