@@ -1,20 +1,21 @@
-import cProfile
-import multiprocessing as mp
+import tkinter as tk
+from tkinter.scrolledtext import ScrolledText
 import cv2
-import mediapipe as mp_solutions
 import numpy as np
-import os
-import Jackknife as jk
+import multiprocessing as mp
 from pathlib import Path
 import collections as col
 from Machete import Machete
 from ContinuousResult import ContinuousResult, ContinuousResultOptions
 from JackknifeConnector import JKConnector as jkc
 from JkBlades import JkBlades
-
+import Jackknife as jk
 import pickle
+from PIL import Image, ImageTk
+import os
+import mediapipe as mp_solutions
 
-
+# Constants
 X = 0
 Y = 1
 Z = 2
@@ -27,12 +28,12 @@ HOME = str(Path(__file__).resolve().parent.parent)
 TEMPLATES = HOME + '\\templates\\'
 TESTS = HOME + '\\testvideos\\'
 
+# Utility function to convert landmarks to frame data
 def landmarks_to_frame(results):
     if results.multi_hand_landmarks:
         landmarks = [results.multi_hand_landmarks[0]]
         if landmarks:
             for handLms in landmarks:
-                # Convert landmarks to dataframe
                 points = handLms.landmark
                 frame = np.zeros((NUM_POINTS * DIMS))
                 for ii, lm in enumerate(points):
@@ -50,7 +51,7 @@ def assemble_templates():
         templates.append((name, np.load(TEMPLATES + '/' + path)))
     return templates
 
-# Worker process for processing frames with Machete
+# Worker for frame processing
 def process_frame_worker(machete, task_queue, result_queue):
     while True:
         task = task_queue.get()
@@ -60,7 +61,7 @@ def process_frame_worker(machete, task_queue, result_queue):
         machete.process_frame(point, current_frame_num, ret)
         result_queue.put((ret, point, current_frame_num))
 
-# Worker process for selecting results
+# Worker for selecting results
 def select_result_worker(result_queue, match_queue):
     while True:
         task = result_queue.get()
@@ -70,7 +71,8 @@ def select_result_worker(result_queue, match_queue):
         result = ContinuousResult.select_result(ret, False)
         match_queue.put((result, point, current_frame_num))
 
-def match_worker(match_queue, recognizer_options, data_queue):
+# Worker for gesture matching
+def match_worker(match_queue, recognizer_options, data_queue, output_queue):
     while True:
         task = match_queue.get()
         if task is None:
@@ -78,93 +80,130 @@ def match_worker(match_queue, recognizer_options, data_queue):
         result, point, current_frame_num = task
         if result:
             data = data_queue.get()
+            try:
+                jk_buffer = jkc.get_jk_buffer_from_video(
+                    list(data),
+                    result.start_frame_no - current_frame_num,
+                    result.end_frame_no - current_frame_num - 1
+                )
+                match, recognizer_d = recognizer_options.is_match(
+                    trajectory=jk_buffer, gid=result.sample.gesture_id
+                )
+                if match:
+                    output_queue.put(f"Gesture: {result.sample.gesture_id} | Score: {recognizer_d:.2f}")
+            finally:
+                data_queue.put(data)
 
-            # Look back at the previous frames starting from the end and counting back the length of the proposed gesture (given by start_frame_no-current_frame_num )
-            jk_buffer = jkc.get_jk_buffer_from_video(list(data), result.start_frame_no-current_frame_num, result.end_frame_no - current_frame_num - 1)
-            match, recognizer_d = recognizer_options.is_match(trajectory=jk_buffer, gid=result.sample.gesture_id)
-            if match:
-                print(f"Matched {result.sample.gesture_id} with score {recognizer_d}")
+# GUI Application
+class GestureApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Gesture Recognition GUI")
 
-            data_queue.put(data)
+        # Canvas for video display
+        self.canvas = tk.Canvas(root, width=640, height=480)
+        self.canvas.pack()
 
-def live_process():
-    print("Starting hand detection")
-    cap = cv2.VideoCapture(0)
-    
-    if not cap.isOpened():
-        print("Error: Failed to open File.")
-        exit()
+        # Console output box
+        self.console = ScrolledText(root, height=8, state='normal')
+        self.console.pack(fill=tk.BOTH, expand=True)
+        self.console.config(state='disabled')
 
-    cr = ContinuousResultOptions()
-    hands = mp_solutions.solutions.hands.Hands()
-    machete = Machete(device_type=None, cr_options=cr, templates=assemble_templates())
-    blades = JkBlades()
-    blades.set_ip_defaults()
-    
-    if os.path.exists("recognizer.pkl"):
-        with open("recognizer.pkl", 'rb') as f:
-            recognizer_options = pickle.load(f)
-    else:
-        recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=blades)
-        with open("recognizer.pkl", 'wb') as f:
-            pickle.dump(recognizer_options, f)
-    
-    # Setup multiprocessing queues
-    task_queue = mp.Queue()
-    result_queue = mp.Queue()
-    match_queue = mp.Queue()
-    data_queue = mp.Queue()
+        # Initialize video capture
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            self.log("Error: Cannot access the webcam.")
+            return
+        
+        self.hands = mp_solutions.solutions.hands.Hands()
 
-    # Put initial empty deque into the data_queue. Set max size to 100 for testing.
-    # Everything that refers to the data_queue will be counting back from the end of the queue.
-    data_queue.put(col.deque(maxlen=100))
+        # Setup queues
+        self.task_queue = mp.Queue()
+        self.result_queue = mp.Queue()
+        self.match_queue = mp.Queue()
+        self.output_queue = mp.Queue()
+        self.data_queue = mp.Queue()
+        self.data_queue.put(col.deque(maxlen=100))
 
-    # Setup worker processes
-    frame_worker = mp.Process(target=process_frame_worker, args=(machete, task_queue, result_queue))
-    result_worker = mp.Process(target=select_result_worker, args=(result_queue, match_queue))
-    match_worker_proc = mp.Process(target=match_worker, args=(match_queue, recognizer_options, data_queue))
+        # Load templates and initialize workers
+        self.machete = Machete(device_type=None, cr_options=ContinuousResultOptions(), templates=assemble_templates())
+        self.blades = JkBlades()
+        self.blades.set_ip_defaults()
+        self.blades.lower_bound = False
+        self.blades.cf_abs_distance = False
+        self.blades.cf_bb_widths = False
 
-    # Start worker processes
-    frame_worker.start()
-    result_worker.start()
-    match_worker_proc.start()
+        if os.path.exists("recognizer.pkl"):
+            with open("recognizer.pkl", 'rb') as f:
+                self.recognizer_options = pickle.load(f)
+        else:
+            self.recognizer_options = jk.Jackknife(templates=assemble_templates(), blades=self.blades)
+            with open("recognizer.pkl", 'wb') as f:
+                pickle.dump(self.recognizer_options, f)
 
-    current_frame_num = 0
-    while True:
-        success, img = cap.read()
-        if not success:
-            print("Error in reading!")
-            break
+        # Start worker processes
+        self.frame_worker = mp.Process(target=process_frame_worker, args=(self.machete, self.task_queue, self.result_queue))
+        self.result_worker = mp.Process(target=select_result_worker, args=(self.result_queue, self.match_queue))
+        self.match_worker_proc = mp.Process(target=match_worker, args=(self.match_queue, self.recognizer_options, self.data_queue, self.output_queue))
 
-        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = hands.process(imgRGB)
+        self.frame_worker.start()
+        self.result_worker.start()
+        self.match_worker_proc.start()
 
-        if results.multi_hand_landmarks:
-            point = landmarks_to_frame(results)
+        # Start GUI updates
+        self.current_frame_num = 0
+        self.update_frame()
+        self.check_output_queue()
 
-            # Get the current deque from the data_queue, append the point, and put it back
-            data = data_queue.get()
-            data.append(point)
-            data_queue.put(data)
+    def update_frame(self):
+        """Update video frame in GUI."""
+        ret, frame = self.cap.read()
+        if ret:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = ImageTk.PhotoImage(image=Image.fromarray(frame_rgb))
+            self.canvas.imgtk = img
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=img)
+            results = self.hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            if results.multi_hand_landmarks:
+                point = landmarks_to_frame(results)
+                data = self.data_queue.get()
+                data.append(point)
+                self.data_queue.put(data)
 
-            task_queue.put((point, current_frame_num, []))
-            current_frame_num += 1
+                self.task_queue.put((point, self.current_frame_num, []))
+                self.current_frame_num += 1
 
-        cv2.imshow("Hand Detection", img)
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
+        self.root.after(10, self.update_frame)
 
-    # Terminate processes
-    task_queue.put(None)
-    result_queue.put(None)
-    match_queue.put(None)
-    
-    frame_worker.join()
-    result_worker.join()
-    match_worker_proc.join()
+    def check_output_queue(self):
+        """Poll output queue for results."""
+        while not self.output_queue.empty():
+            message = self.output_queue.get()
+            self.log(message)
 
-    cap.release()
-    cv2.destroyAllWindows()
+        self.root.after(100, self.check_output_queue)
+
+    def log(self, message):
+        """Log a message to the console box."""
+        self.console.config(state='normal')
+        self.console.insert(tk.END, f"{message}\n")
+        self.console.see(tk.END)
+        self.console.config(state='disabled')
+
+    def close(self):
+        """Clean up resources."""
+        self.task_queue.put(None)
+        self.result_queue.put(None)
+        self.match_queue.put(None)
+        self.cap.release()
+        self.frame_worker.terminate()
+        self.result_worker.terminate()
+        self.match_worker_proc.terminate()
+        self.root.destroy()
+
 
 if __name__ == "__main__":
-    live_process()
+    root = tk.Tk()
+    app = GestureApp(root)
+    root.protocol("WM_DELETE_WINDOW", app.close)
+    root.mainloop()
