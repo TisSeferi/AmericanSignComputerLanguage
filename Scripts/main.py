@@ -182,7 +182,7 @@ class GestureSandbox:
         # Set fixed axes limits
         self.ax.set_xlim([0, 1])
         self.ax.set_ylim([0, 1])
-        self.ax.set_zlim([0, 1])
+        self.ax.set_zlim([-0.1, 0.1])
         
         # Add labels
         self.ax.set_xlabel('X')
