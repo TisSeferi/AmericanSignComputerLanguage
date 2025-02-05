@@ -12,11 +12,15 @@ class GestureSandbox:
         self.root = root
         self.root.title("Gesture Sandbox")
 
+        # Constants for landmark processing
+        self.NUM_POINTS = 21
+        self.DIMS = 3
+
         # Video feed display
         self.canvas = tk.Canvas(root, width=640, height=480)
         self.canvas.pack(pady=10)
 
-        # Buttons
+        # Buttons in horizontal layout
         button_frame = tk.Frame(root)
         button_frame.pack(pady=5)
         
@@ -53,26 +57,21 @@ class GestureSandbox:
         self.hands = self.mp_hands.Hands()
         self.mp_drawing = mp.solutions.drawing_utils
 
+        # Hand connections for visualization
         self.connections = [
-            # Thumb
-            (0, 1), (1, 2), (2, 3), (3, 4),
-            # Index finger
-            (0, 5), (5, 6), (6, 7), (7, 8),
-            # Middle finger
-            (0, 9), (9, 10), (10, 11), (11, 12),
-            # Ring finger
-            (0, 13), (13, 14), (14, 15), (15, 16),
-            # Pinky
-            (0, 17), (17, 18), (18, 19), (19, 20),
-            # Palm
-            (0, 17), (0, 13), (0, 9), (0, 5)
+            (0, 1), (1, 2), (2, 3), (3, 4),           # thumb
+            (0, 5), (5, 6), (6, 7), (7, 8),           # index
+            (5, 9), (9, 10), (10, 11), (11, 12),      # middle
+            (9, 13), (13, 14), (14, 15), (15, 16),    # ring
+            (13, 17), (17, 18), (18, 19), (19, 20),   # pinky
+            (5, 9), (9, 13), (13, 17)                 # palm
         ]
 
-        # Start updating the GUI with video feed
+        # Start video feed
         self.update_frame()
 
     def update_frame(self):
-        """Capture video frames and display them in the Tkinter canvas."""
+        """Update video feed and process hand landmarks."""
         ret, frame = self.cap.read()
         if ret:
             # Convert frame to RGB for MediaPipe and Tkinter
@@ -84,17 +83,21 @@ class GestureSandbox:
                 for hand_landmarks in results.multi_hand_landmarks:
                     self.mp_drawing.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     if self.recording:
-                        # Record landmarks if in recording mode
-                        landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-                        self.gesture_data.append(landmarks)
+                        # Convert landmarks to FeedData.py format
+                        frame_data = np.zeros(self.NUM_POINTS * self.DIMS)
+                        for i, lm in enumerate(hand_landmarks.landmark):
+                            idx = i * 3
+                            frame_data[idx] = lm.x
+                            frame_data[idx + 1] = lm.y
+                            frame_data[idx + 2] = lm.z
+                        self.gesture_data.append(frame_data)
 
             # Convert frame for display in Tkinter
             img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             imgtk = ImageTk.PhotoImage(image=img)
             self.canvas.create_image(0, 0, anchor=tk.NW, image=imgtk)
-            self.canvas.imgtk = imgtk  # Keep a reference to avoid garbage collection
+            self.canvas.imgtk = imgtk
 
-        # Schedule the next frame update
         self.root.after(10, self.update_frame)
 
     def start_recording(self):
@@ -119,7 +122,6 @@ class GestureSandbox:
         self.paused = False
 
         def on_key(event):
-            """Handle keyboard input for playback control."""
             if event.key == ' ':
                 self.paused = not self.paused
             elif event.key == 'right':
@@ -131,16 +133,13 @@ class GestureSandbox:
             elif event.key == 'e':
                 self.start_frame = self.current_frame
                 print(f"Start frame set to: {self.start_frame}")
-                self.update_plot()
             elif event.key == 'r':
                 self.end_frame = self.current_frame
                 print(f"End frame set to: {self.end_frame}")
-                self.update_plot()
 
         def playback():
-            """Handle the playback loop."""
-            plt.ion()  # Interactive mode
-            fig = plt.figure()
+            plt.ion()
+            fig = plt.figure(figsize=(8, 8))
             self.ax = fig.add_subplot(111, projection='3d')
             fig.canvas.mpl_connect('key_press_event', on_key)
 
@@ -150,25 +149,26 @@ class GestureSandbox:
                     self.current_frame += 1
                 plt.pause(0.1)
 
-            plt.ioff()  # Turn off interactive mode
+            plt.ioff()
             plt.close()
 
-        threading.Thread(target=playback).start()
+        threading.Thread(target=playback, daemon=True).start()
 
     def update_plot(self):
-        """Update the plot with the current frame."""
+        """Update the 3D plot with the current frame."""
         if self.ax is None:
             return
-            
-        frame = self.current_gesture[self.current_frame]
+
         self.ax.clear()
+        frame = self.current_gesture[self.current_frame]
         
-        # Create 3D scatter plot
-        xs = [lm[0] for lm in frame]
-        ys = [lm[1] for lm in frame]
-        zs = [lm[2] for lm in frame]
-        
-        # Plot landmarks
+        # Reshape frame data into points
+        points = frame.reshape(-1, 3)
+        xs = points[:, 0]
+        ys = points[:, 1]
+        zs = points[:, 2]
+
+        # Plot points
         self.ax.scatter(xs, ys, zs, c='blue', s=20)
         
         # Draw connections
@@ -182,7 +182,7 @@ class GestureSandbox:
         # Set fixed axes limits
         self.ax.set_xlim([0, 1])
         self.ax.set_ylim([0, 1])
-        self.ax.set_zlim([-0.1, 0.1])
+        self.ax.set_zlim([0, 1])
         
         # Add labels
         self.ax.set_xlabel('X')
@@ -204,7 +204,6 @@ class GestureSandbox:
             print("No gesture to save.")
             return
 
-        # If start and end frames are set, only save that segment
         if self.start_frame is not None and self.end_frame is not None:
             gesture_to_save = self.current_gesture[self.start_frame:self.end_frame + 1]
         else:
@@ -225,9 +224,8 @@ class GestureSandbox:
 
     def close(self):
         """Release resources on close."""
-        self.cap.release()  # Release the camera
-        cv2.destroyAllWindows()  # Close any OpenCV windows
-        self.root.destroy()
+        self.cap.release()
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     root = tk.Tk()
