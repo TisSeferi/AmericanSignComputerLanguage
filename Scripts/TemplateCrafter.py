@@ -227,8 +227,7 @@ class GestureSandbox:
         self.cap.release()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = GestureSandbox(root)
-    root.protocol("WM_DELETE_WINDOW", app.close)
-    root.mainloop()
+root = tk.Tk()
+app = GestureSandbox(root)
+root.protocol("WM_DELETE_WINDOW", app.close)
+root.mainloop()
