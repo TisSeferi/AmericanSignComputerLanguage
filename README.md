@@ -89,9 +89,9 @@ The system uses:
 
 ## References
 
-- Jackknife Repository [text](https://github.com/ISUE/Jackknife)
-- Machete Repository [text](https://github.com/ISUE/Machete)
-- MediaPipe Documentation
+- [Jackknife Repository](https://github.com/ISUE/Jackknife)
+- [Machete Repository](https://github.com/ISUE/Machete)
+- [MediaPipe Documentation](https://ai.google.dev/edge/mediapipe/solutions/guide)
 
 ## Known Limitations
 
