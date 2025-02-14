@@ -1,11 +1,12 @@
-# American Sign Language Computer Vision (ASLCV)
+# American Sign Computer Language (ASCL) Recognizer
 
 A real-time American Sign Language recognition system that combines advanced gesture recognition algorithms with computer vision technologies.
 
 ## Overview
 
 This project implements a gesture recognition system for American Sign Language using:
-- Jackknife.py - Time series pattern recognition algorithm 
+- Jackknife.py - Time series pattern recognition algorithm
+- Machete.py - A segmentation technique 
 - [MediaPipe](https://mediapipe.dev/) - Hand tracking and landmark detection
 - [OpenCV](https://opencv.org/) - Computer vision and video processing
 
@@ -34,8 +35,14 @@ pip install -r requirements.txt
 ```
 
 2. Launch the main recognition system:
+```
+python Scripts/main.py
+```
 
-3. For recording new gesture templates:
+4. For recording new gesture templates:
+```
+python Scripts/TemplateCrafter.py
+```
 
 ## Usage
 
