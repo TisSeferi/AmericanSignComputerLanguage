@@ -59,8 +59,6 @@ python Scripts/TemplateCrafter.py
 - Review recordings with frame-by-frame playback
 - Save templates for recognition training
 
-## Project Structure
-
 ## Dependencies
 
 - OpenCV (opencv-python, opencv-contrib-python) - Video processing
@@ -91,8 +89,8 @@ The system uses:
 
 ## References
 
-- Jackknife Repository
-- Machete Repository
+- Jackknife Repository [text](https://github.com/ISUE/Jackknife)
+- Machete Repository [text](https://github.com/ISUE/Machete)
 - MediaPipe Documentation
 
 ## Known Limitations
