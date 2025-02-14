@@ -14,6 +14,7 @@ import pickle
 from PIL import Image, ImageTk
 import os
 import mediapipe as mp_solutions
+import time
 
 # Constants
 X = 0
@@ -98,6 +99,7 @@ def match_worker(match_queue, recognizer_options, data_queue, output_queue):
 class GestureApp:
     def __init__(self, root):
         self.root = root
+        self.last_log_time = 0  # Add this line
         self.root.title("Gesture Recognition GUI")
 
         # Canvas for video display
@@ -105,9 +107,13 @@ class GestureApp:
         self.canvas.pack()
 
         # Console output box
-        self.console = ScrolledText(root, height=8, state='normal')
+        self.console = ScrolledText(root, height=8, state='normal', font=('Arial', 16, 'bold'))
         self.console.pack(fill=tk.BOTH, expand=True)
         self.console.config(state='disabled')
+
+        # Add a clear button to your GUI:
+        self.clear_button = tk.Button(root, text="Clear Console", command=self.clear_console)
+        self.clear_button.pack()
 
         # Initialize video capture
         self.cap = cv2.VideoCapture(0)
@@ -184,10 +190,19 @@ class GestureApp:
         self.root.after(100, self.check_output_queue)
 
     def log(self, message):
-        """Log a message to the console box."""
+        """Log a message to the console box with rate limiting."""
+        current_time = time.time()
+        # Only log if 0.8 seconds have passed since last message
+        if current_time - self.last_log_time >= 0.7:  
+            self.console.config(state='normal')
+            self.console.insert(tk.END, f"{message}\n")
+            self.console.see(tk.END)
+            self.console.config(state='disabled')
+            self.last_log_time = current_time
+
+    def clear_console(self):
         self.console.config(state='normal')
-        self.console.insert(tk.END, f"{message}\n")
-        self.console.see(tk.END)
+        self.console.delete(1.0, tk.END)
         self.console.config(state='disabled')
 
     def close(self):
