@@ -7,8 +7,8 @@ A real-time American Sign Language recognition system that combines advanced ges
 This project implements a gesture recognition system for American Sign Language using:
 - Jackknife.py - Time series pattern recognition algorithm
 - Machete.py - A segmentation technique 
-- [MediaPipe](https://mediapipe.dev/) - Hand tracking and landmark detection
-- [OpenCV](https://opencv.org/) - Computer vision and video processing
+- MediaPipe - Hand tracking and landmark detection
+- OpenCV - Computer vision and video processing
 
 ## Key Features
 
@@ -92,6 +92,7 @@ The system uses:
 - [Jackknife Repository](https://github.com/ISUE/Jackknife)
 - [Machete Repository](https://github.com/ISUE/Machete)
 - [MediaPipe Documentation](https://ai.google.dev/edge/mediapipe/solutions/guide)
+- [OpenCV Documentation](https://opencv.org/) 
 
 ## Known Limitations
 
