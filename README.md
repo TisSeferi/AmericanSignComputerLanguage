@@ -7,8 +7,11 @@ DataForGui.py is the class you need to run for project.
 
 Current ASL Gestures are:
 
-![image](https://github.com/ErtisSeferi36/AmericanSignComputerLanguage/assets/76220575/cd01b5f8-1b6c-4463-8885-e4ba3517f2ba)
-
+Forgot,
+Thank you,
+Like,
+No,
+Don't
 
 
 Might need to install these libraries
