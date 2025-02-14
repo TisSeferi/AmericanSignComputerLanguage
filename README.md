@@ -1,25 +1,102 @@
-# AmericanSignComputerLanguage
+# American Sign Language Computer Vision (ASLCV)
 
-American Sign Language recognizer that utilizes time series recognizer JackKnife in tandem with OpenCV and MediaPipe. Currently the most stable build.
-The current application allows you to record MP4s to use as templates however doesn't load the videos the program needs to be re-run. All you need to do is to hold your hand out onto the camera and let the buffer fill up (should take about 3 seconds). You can also run templates and test video/npy in the run text box. As of now, saving and recording does not work as intended however real-time recognition works.
+A real-time American Sign Language recognition system that combines advanced gesture recognition algorithms with computer vision technologies.
 
-DataForGui.py is the class you need to run for project.
+## Overview
 
-Current ASL Gestures are:
+This project implements a gesture recognition system for American Sign Language using:
+- Jackknife.py - Time series pattern recognition algorithm 
+- [MediaPipe](https://mediapipe.dev/) - Hand tracking and landmark detection
+- [OpenCV](https://opencv.org/) - Computer vision and video processing
 
-Forgot,
-Thank you,
-Like,
-No,
-Don't
+## Key Features
 
+- Real-time ASL gesture recognition
+- Multi-threaded processing architecture  
+- 3D hand landmark tracking
+- Template recording and management
+- Configurable gesture matching parameters
 
-Might need to install these libraries
+## Supported ASL Gestures
 
-import cv2
+Currently recognizes the following ASL signs:
+- "Forget" 
+- "Thank you"
+- "Like"
+- "No"
+- "Need"
 
-import mediapipe as mp
+## Getting Started
 
-import numpy as np
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-import os
+2. Launch the main recognition system:
+
+3. For recording new gesture templates:
+
+## Usage
+
+### Real-time Recognition:
+
+- Position your hand in front of the camera
+- Allow ~3 seconds for the gesture buffer to fill
+- Perform ASL gestures naturally
+- Recognition results appear in the console
+
+### Template Creation:
+
+- Use TemplateCrafter.py to record new gestures
+- Review recordings with frame-by-frame playback
+- Save templates for recognition training
+
+## Project Structure
+
+## Dependencies
+
+- OpenCV (opencv-python, opencv-contrib-python) - Video processing
+- MediaPipe - Hand tracking
+- NumPy - Numerical processing
+- Pillow - Image processing
+
+## Development Status
+
+Currently in active development with focus on:
+
+- GUI 2.0 implementation
+- Expanded gesture recognition set
+- Performance optimization
+- Template management improvements
+
+See checklist.md for detailed development status.
+
+## Technical Details
+
+The system uses:
+
+- Dynamic Time Warping (DTW) for gesture matching
+- MediaPipe hand landmark detection
+- Multi-threaded gesture processing pipeline
+- Rate-limited recognition output
+- Configurable gesture confidence thresholds
+
+## References
+
+- Jackknife Repository
+- Machete Repository
+- MediaPipe Documentation
+
+## Known Limitations
+
+- Template recording requires manual frame selection
+- Recognition requires consistent lighting conditions
+- Limited to single-hand gestures currently
+
+## Future Developments
+
+- Two-handed gesture support
+- Improved template management system
+- Automated gesture segmentation
+- Extended ASL vocabulary support
