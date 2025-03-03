@@ -1,6 +1,7 @@
 from JkBlades import JkBlades
 from Vector import Vector
 import mathematics
+import math
 
 
 class JkFeatures:
@@ -45,5 +46,30 @@ class JkFeatures:
         if blades.z_normalize:
             self.vecs = mathematics.z_normalize(self.vecs)
 
+        print("\n=== Movement Debug Values ===")
+        print("Before normalization:")
+        print(f"Absolute movement raw values: {[f'{x:.4f}' for x in self.abs.data]}")
+        
         self.abs.normalize()
-        self.bb = (maximum - minimum).normalize()
+
+        print("\n")
+        print(f"After abs normalization: {[f'{x:.4f}' for x in self.abs.data]}")
+        
+        bb_raw = (maximum - minimum)
+        print("\n=== Bounding Box Analysis ===")
+        print(f"Box dimensions (width, height, depth):")
+        print(f"X (width): {bb_raw.data[0]:.4f} units")
+        print(f"Y (height): {bb_raw.data[1]:.4f} units")
+        print(f"Z (depth): {bb_raw.data[2]:.4f} units")
+        
+        # Calculate diagonal length for overall movement size
+        diagonal = math.sqrt(sum(x*x for x in bb_raw.data))
+        print(f"\nTotal movement space (diagonal): {diagonal:.4f} units")
+        
+        self.bb = bb_raw.normalize()
+        print("\nNormalized dimensions (relative proportions):")
+        print(f"X: {self.bb.data[0]:.4f}")
+        print(f"Y: {self.bb.data[1]:.4f}")
+        print(f"Z: {self.bb.data[2]:.4f}")
+
+        print()
