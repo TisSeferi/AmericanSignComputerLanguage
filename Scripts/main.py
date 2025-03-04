@@ -135,9 +135,9 @@ class GestureApp:
         self.machete = Machete(device_type=None, cr_options=ContinuousResultOptions(), templates=assemble_templates())
         self.blades = JkBlades()
         self.blades.set_ip_defaults()
-        self.blades.lower_bound = False
-        self.blades.cf_abs_distance = False
-        self.blades.cf_bb_widths = False
+        #self.blades.lower_bound = False
+        #self.blades.cf_abs_distance = False
+        #self.blades.cf_bb_widths = False
 
         if os.path.exists("recognizer.pkl"):
             with open("recognizer.pkl", 'rb') as f:

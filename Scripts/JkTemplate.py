@@ -19,7 +19,7 @@ class JkTemplate:
         self.cf = 1.0
 
         self.rejection_threshold = float('inf')
-        self.features = JkFeatures(blades, sample)
+        self.features = JkFeatures(blades, sample, debug_print=True)
 
         vecs = self.features.vecs
         component_cnt = vecs[0].size()
