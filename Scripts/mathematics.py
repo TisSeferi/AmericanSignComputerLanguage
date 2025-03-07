@@ -100,8 +100,9 @@ def resample(points, n=8, variance=None):
 
         remaining_distance = path_distance * intervals[(ret.size() - 1)]
 
-    if ret.size() < n:
+    while ret.size() < n:
         ret.append(points[ii - 1])
+    #print ("Resampled Length assertion Check:" +  str(ret.size()) + " " + str(n) + " " + str(points.size()) + " " + str(ii)) 
 
     assert ret.size() == n
     return ret

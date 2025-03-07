@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import warnings 
 
 class Vector:
     def __init__(self, data, cmp_cnt=None):
@@ -65,10 +66,12 @@ class Vector:
     def magnitude(self):
         return math.sqrt(sum(x ** 2 for x in self.data))
 
+    # Normalize the vector. Returns the normalized vector and a boolean indicating if the normalization was successful.
     def normalize(self):
         mag = self.magnitude()
         if mag == 0:
-            raise ValueError("Can't normalize")
+            warnings.warn("Can't normalize zero vector")
+            return self.data
         return Vector([x / mag for x in self.data])
     
     def l2norm2(self, other):

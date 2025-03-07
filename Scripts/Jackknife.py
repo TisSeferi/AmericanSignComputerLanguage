@@ -136,12 +136,11 @@ class Jackknife:
     def train(self, gpsr_n, gpsr_r, beta):
         template_cnt = len(self.templates)
         distributions = []
-        synthetic = Vector([])
 
         worst_score = 0.0
 
-        for ii in range(0, NUM_DIST_SAMPLES):
-            synthetic.length = 0
+        for ii in range(0, NUM_DIST_SAMPLES):        
+            synthetic = Vector([])
 
             for jj in range(0, 2):
                 tt = math.floor(r.random() * template_cnt % template_cnt)
