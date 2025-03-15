@@ -71,7 +71,7 @@ class Vector:
         mag = self.magnitude()
         if mag == 0:
             warnings.warn("Can't normalize zero vector")
-            return self.data
+            return Vector(self.data)
         return Vector([x / mag for x in self.data])
     
     def l2norm2(self, other):

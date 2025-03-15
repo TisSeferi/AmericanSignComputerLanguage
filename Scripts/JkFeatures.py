@@ -75,3 +75,16 @@ class JkFeatures:
             print(f"Z: {self.bb.data[2]:.4f}")
 
             print()
+
+        # Determine if the gesture is static or continuous
+        threshold = 0.06  # Define your threshold
+        is_static = self.is_static_gesture(diagonal, threshold)
+
+        if is_static:
+            print("The gesture is static.")
+        else:
+            print("The gesture is continuous.")
+
+    def is_static_gesture(self, diagonal, threshold):
+        """Determine if the gesture is static or continuous based on the diagonal length."""
+        return diagonal < threshold
