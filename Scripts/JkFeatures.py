@@ -8,19 +8,22 @@ class JkFeatures:
     def __init__(self, blades=JkBlades, points=None, debug_print=False):
         self.pts = points
         self.vecs = Vector([])
-
+        self.normalized_vecs = Vector([])
         m = points[0].size()
         
+        #Extract first frame. ie. first_frame = self.pts[0]
         
-        self.pts = mathematics.resample(points=Vector(self.pts), n=blades.resample_cnt)
-        # print(self.pts)
 
+        self.pts = mathematics.resample(points=Vector(self.pts), n=blades.resample_cnt)
+                
+        #Process first frame ie. self.process_first_frame(first_frame)
+        
+        
         minimum = Vector(self.pts[0])
         maximum = Vector(self.pts[0])
-
+        
         self.abs = Vector(0.0, m)
 
-        # print(np.shape(self.pts))
 
         for ii in range(1, blades.resample_cnt):
             vec = self.pts[ii] - self.pts[ii - 1]
@@ -76,15 +79,24 @@ class JkFeatures:
 
             print()
 
-        # Determine if the gesture is static or continuous
-        threshold = 0.06  # Define your threshold
-        is_static = self.is_static_gesture(diagonal, threshold)
+    #    Determine if the gesture is static or continuous
+    #    threshold = 0.06  # Define your threshold
+    #    is_static = self.is_static_gesture(diagonal, threshold)
 
-        if is_static:
-            print("The gesture is static.")
-        else:
-            print("The gesture is continuous.")
+    #    if is_static:
+    #        print("The gesture is static.")
+    #    else:
+    #        print("The gesture is continuous.")
 
-    def is_static_gesture(self, diagonal, threshold):
-        """Determine if the gesture is static or continuous based on the diagonal length."""
-        return diagonal < threshold
+    #def is_static_gesture(self, diagonal, threshold):
+    #    """Determine if the gesture is static or continuous based on the diagonal length."""
+    #    return diagonal < threshold
+    
+    def process_first_frame(self, first_frame):
+        """Process the first frame."""
+        centroid = mathematics.calculate_centroid(first_frame)
+        difference_vecs = mathematics.calculate_difference(first_frame, centroid)
+        difference_vecs = difference_vecs.normalize()
+        self.normalized_vecs.append(difference_vecs)
+        
+        return self.normalized_vecs
