@@ -69,7 +69,7 @@ class Vector:
     # Normalize the vector. Returns the normalized vector and a boolean indicating if the normalization was successful.
     def normalize(self):
         mag = self.magnitude()
-        if mag == 0:
+        if mag < 1e-8:
             warnings.warn("Can't normalize zero vector")
             return Vector(self.data)
         return Vector([x / mag for x in self.data])

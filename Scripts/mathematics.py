@@ -234,4 +234,30 @@ def vectorize(trajectory, normalize=True):
         vectors.append(vec)
     return vectors
 
+def calculate_centroid(trajectory):
+    
+    centroid = Vector([0.0, 0.0, 0.0])
+    num_points = len(trajectory) // 3 
+    
+    for i in range(num_points):
+        
+        x, y, z = trajectory[i * 3], trajectory[i * 3 + 1], trajectory[i * 3 + 2]
+        centroid += Vector([x, y, z])
+        
+    centroid = centroid / 21
+    
+    return centroid
 
+def calculate_difference(trajectory, centroid):
+    
+    variance = Vector([0.0, 0.0, 0.0])
+    num_points = len(trajectory) // 3
+
+    for i in range(num_points):
+        x, y, z = trajectory[i * 3], trajectory[i * 3 + 1], trajectory[i * 3 + 2]
+        point = Vector([x, y, z])
+        variance += (point - centroid) 
+
+    variance = variance / num_points 
+    
+    return variance
