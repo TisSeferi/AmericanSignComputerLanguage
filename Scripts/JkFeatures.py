@@ -11,13 +11,14 @@ class JkFeatures:
         self.normalized_vecs = Vector([])
         m = points[0].size()
         
-        #Extract first frame. ie. first_frame = self.pts[0]
-        
+        # Store information about first frame to support static pose gestures. Calculate first frame position,
+        # centroid of hand, and distance vectors for the first frame joints relative to centroid
+        self.first_frame = self.pts[0]        
+        self.ff_centroid = mathematics.calculate_centroid(self.first_frame)
+        self.ff_joint_vecs_flat, self.ff_joint_vecs = mathematics.convert_joint_positions_to_distance_vectors(self.first_frame, self.ff_centroid)        
 
         self.pts = mathematics.resample(points=Vector(self.pts), n=blades.resample_cnt)
                 
-        #Process first frame ie. self.process_first_frame(first_frame)
-        
         
         minimum = Vector(self.pts[0])
         maximum = Vector(self.pts[0])
@@ -91,12 +92,3 @@ class JkFeatures:
     #def is_static_gesture(self, diagonal, threshold):
     #    """Determine if the gesture is static or continuous based on the diagonal length."""
     #    return diagonal < threshold
-    
-    def process_first_frame(self, first_frame):
-        """Process the first frame."""
-        centroid = mathematics.calculate_centroid(first_frame)
-        difference_vecs = mathematics.calculate_difference(first_frame, centroid)
-        difference_vecs = difference_vecs.normalize()
-        self.normalized_vecs.append(difference_vecs)
-        
-        return self.normalized_vecs
