@@ -235,40 +235,50 @@ def vectorize(trajectory, normalize=True):
     return vectors
 
 def calculate_centroid(trajectory):
-    
+    # Create a new Vector filled with zeros to store the average position
     centroid = Vector([0.0, 0.0, 0.0])
+    
+    # Calculate how many points we have (each point has x,y,z so divide by 3)
     num_points = trajectory.size() // 3 
     
     for i in range(num_points):
-        
+        # Get the x,y,z coordinates for each point
         x, y, z = trajectory[i * 3], trajectory[i * 3 + 1], trajectory[i * 3 + 2]
+
+        # Add each point's position to our running total
         centroid += Vector([x, y, z])
-        
-    centroid = centroid / 21
+    
+    # Divide by 21 to get the average position (center point)
+    centroid = centroid / num_points
     
     return centroid
 
 # Converts from a list of joint coordinates to a list of distance vectors from the centroid
 def convert_joint_positions_to_distance_vectors(joints_xyz, centroid):
-    # Create a list to hold the distance vectors
-    direction_vector_joints = Vector([])
-    flat_direction_vector_joints = Vector([])
+    # Create empty lists to store our results
+    direction_vector_joints = Vector([])       # Will store 3D vectors
+    flat_direction_vector_joints = Vector([])  # Will store flattened coordinates
+    
+    # Calculate number of points (each point has x,y,z coordinates)
     num_points = joints_xyz.size() // 3
 
     for i in range(num_points):
-        x, y, z = joints_xyz[i * 3], joints_xyz[i * 3 + 1], joints_xyz[i * 3 + 2]
+
+        x, y, z = joints_xyz[i * 3], joints_xyz[i * 3 + 1], joints_xyz[i * 3 + 2]        
         # Calculate the position of the joint relative to the centroid
         joint_position = Vector([x, y, z]) - centroid
 
-        # Normalize the translated joint position to get the distance vector
+        # Make the vector length 1.0 (normalize it)
         joint_position = joint_position.normalize()
+        
+        # Store the 3D vector
         direction_vector_joints.append(joint_position)
         
         # Append the distance vector to the list as we are dealing with flat vectors. May not be used.
         flat_direction_vector_joints.append(joint_position[0])
         flat_direction_vector_joints.append(joint_position[1])
         flat_direction_vector_joints.append(joint_position[2])
-        
+
 
     return flat_direction_vector_joints, direction_vector_joints
 
@@ -276,29 +286,33 @@ def convert_joint_positions_to_distance_vectors(joints_xyz, centroid):
 # Calculate per joint angle between two lists(vectors) of direction vectors, and the summed angle for the entire pose
 # Works with FLAT vectors of normalized direction vectors with three coords per joint.
 def calculate_joint_angle_disparity(joint_vecs_a, joint_vecs_b):
-    joint_angles = []
-    total_angle = 0.0
-    # Check if the input vectors are of the same length
+    # Create lists to store our results
+    joint_angles = []    # Will store angles between each pair of joints
+    total_angle = 0.0   # Will store the sum of all angles
+    
+    # Make sure we have the same number of points in both sets
     assert joint_vecs_a.size() == joint_vecs_b.size(), "Input vectors must have the same length"
 
+    # Calculate how many points we have
     num_points = joint_vecs_a.size() // 3
 
     for i in range(num_points):
-        # Get the direction vectors for the current joint
+        # Get the vectors for matching joints from both sets
         vec_a = Vector([joint_vecs_a[i * 3], joint_vecs_a[i * 3 + 1], joint_vecs_a[i * 3 + 2]])
         vec_b = Vector([joint_vecs_b[i * 3], joint_vecs_b[i * 3 + 1], joint_vecs_b[i * 3 + 2]])
 
-        # Check if the vectors are normalized
+        # Make sure vectors are normalized (length = 1)
         assert abs(vec_a.magnitude() - 1.0) < 0.01, "Input vector a must be normalized" 
         assert abs(vec_b.magnitude() - 1.0) < 0.01, "Input vector b must be normalized"
 
-        # Calculate the angle between the two vectors. The dot product will be from -1 to 1 as they are both normalized.
+        # Calculate how similar the vectors are using dot product
+        # 1.0 means identical direction, -1.0 means opposite direction
         dot_product = vec_a.dot(vec_b)                
 
+        # Store the similarity score for this joint
         joint_angles.append(dot_product)
         
+        # Add to our running total
         total_angle = total_angle + dot_product
 
-    # total_angle should give a value between -num_points and num_points, where num_points is a perfect match and -num_points is the worst possible score (completely inverted).
-    # This is the sum of the dot products of the two sets joint vectors, which is a measure of similarity. 
     return joint_angles, total_angle
