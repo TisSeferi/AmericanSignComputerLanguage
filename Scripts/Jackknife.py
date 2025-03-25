@@ -59,10 +59,10 @@ class Jackknife:
             # TODO Some light testing shows that this will not be reached if the user is holding their hand steady, so we may need to run this calculation somewhere else and every frame
             # TODO Determine a threshold. The greater the total_distance, the closer the match/ The scores should be in the range [-num_points, num_points].
             # Threshold should be something like total_distance > .6*num_points
-            ff_vec_distance_list, total_distance = mathematics.calculate_joint_angle_disparity(self.templates[tid].features.ff_joint_vecs_flat, features.ff_joint_vecs_flat)
-            if (True):
-                print("Machete thinks this is a " + self.templates[tid].gesture_id)
-                print("Distance total: " + str(total_distance))                                  
+            # ff_vec_distance_list, total_distance = mathematics.calculate_joint_angle_disparity(self.templates[tid].features.ff_joint_vecs_flat, features.ff_joint_vecs_flat)
+            # if (True):
+            #     print("Machete thinks this is a " + self.templates[tid].gesture_id)
+            #     print("Distance total: " + str(total_distance))                                  
 
             cf = 1
 

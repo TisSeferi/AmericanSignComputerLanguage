@@ -10,6 +10,8 @@ from ContinuousResult import ContinuousResult, ContinuousResultOptions
 from JackknifeConnector import JKConnector as jkc
 from JkBlades import JkBlades
 import Jackknife as jk
+import mathematics
+from Vector import Vector
 import pickle
 from PIL import Image, ImageTk
 import os
@@ -95,6 +97,31 @@ def match_worker(match_queue, recognizer_options, data_queue, output_queue):
             finally:
                 data_queue.put(data)
 
+def static_worker(task_queue, recognizer_options, output_queue):
+    while True:
+        task = task_queue.get()
+        if task is None:
+            break
+        point, current_frame_num, ret = task        
+        point_vec = Vector(point)
+        point_centroid = mathematics.calculate_centroid(point_vec)
+        point_vecs_flat, _ = mathematics.convert_joint_positions_to_distance_vectors(point_vec, point_centroid)
+        best_match = None
+        best_distance = float('-inf')
+
+        for template in recognizer_options.templates:
+            ff_vec_distance_list, total_distance = mathematics.calculate_joint_angle_disparity(
+                template.features.ff_joint_vecs_flat,
+                point_vecs_flat
+            )
+            if total_distance > best_distance:
+                best_distance = total_distance
+                best_match = template
+        
+        if best_match:
+            output_queue.put(f"Gesture: {best_match.gesture_id} | Score: {best_distance:.2f}")
+
+
 # GUI Application
 class GestureApp:
     def __init__(self, root):
@@ -151,10 +178,12 @@ class GestureApp:
         self.frame_worker = mp.Process(target=process_frame_worker, args=(self.machete, self.task_queue, self.result_queue))
         self.result_worker = mp.Process(target=select_result_worker, args=(self.result_queue, self.match_queue))
         self.match_worker_proc = mp.Process(target=match_worker, args=(self.match_queue, self.recognizer_options, self.data_queue, self.output_queue))
+        self.static_worker = mp.Process(target=static_worker, args=(self.task_queue, self.recognizer_options, self.output_queue))
 
         self.frame_worker.start()
         self.result_worker.start()
         self.match_worker_proc.start()
+        self.static_worker.start()
 
         # Start GUI updates
         self.current_frame_num = 0
@@ -214,6 +243,7 @@ class GestureApp:
         self.frame_worker.terminate()
         self.result_worker.terminate()
         self.match_worker_proc.terminate()
+        self.static_worker.terminate()
         self.root.destroy()
 
 
