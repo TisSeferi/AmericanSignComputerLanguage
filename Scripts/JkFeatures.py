@@ -55,8 +55,9 @@ class JkFeatures:
             print("Before normalization:")
             print(f"Absolute movement raw values: {[f'{x:.4f}' for x in self.abs.data]}")
         
-        self.abs = self.abs.normalize()
         bb_raw = (maximum - minimum)
+        self.is_static = self.is_static_gesture(self.abs, bb_raw)
+        self.abs = self.abs.normalize()
         diagonal = math.sqrt(sum(x*x for x in bb_raw.data))
         self.bb = bb_raw.normalize()
         
@@ -80,15 +81,11 @@ class JkFeatures:
 
             print()
 
-    #    Determine if the gesture is static or continuous
-    #    threshold = 0.06  # Define your threshold
-    #    is_static = self.is_static_gesture(diagonal, threshold)
+        if self.is_static:
+            print("Static gesture detected.")
 
-    #    if is_static:
-    #        print("The gesture is static.")
-    #    else:
-    #        print("The gesture is continuous.")
-
-    #def is_static_gesture(self, diagonal, threshold):
-    #    """Determine if the gesture is static or continuous based on the diagonal length."""
-    #    return diagonal < threshold
+    def is_static_gesture(self, abs_movement, bounding_box):
+        abs_magnitude = math.sqrt(sum(x*x for x in abs_movement.data))
+        bb_magnitude = math.sqrt(sum(x*x for x in bounding_box.data))
+            
+        return abs_magnitude > bb_magnitude
