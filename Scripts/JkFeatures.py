@@ -56,11 +56,21 @@ class JkFeatures:
             print(f"Absolute movement raw values: {[f'{x:.4f}' for x in self.abs.data]}")
         
         bb_raw = (maximum - minimum)
-        self.is_static = self.is_static_gesture(self.abs, bb_raw)
+        abs_magnitude = math.sqrt(sum(x*x for x in self.abs.data))
+        bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
+
+        movement_ratio = abs_magnitude / bb_magnitude
+
+        if movement_ratio > 2.0:
+            print(f"This is a dynamic gesture (movement ratio: {movement_ratio:.2f})")
+        else:
+            print(f"This is a static gesture (movement ratio: {movement_ratio:.2f})")
+
+
         self.abs = self.abs.normalize()
-        diagonal = math.sqrt(sum(x*x for x in bb_raw.data))
         self.bb = bb_raw.normalize()
-        
+
+
         if debug_print:
             print("\n")
             print(f"After abs normalization: {[f'{x:.4f}' for x in self.abs.data]}")        
@@ -72,7 +82,7 @@ class JkFeatures:
             print(f"Z (depth): {bb_raw.data[2]:.4f} units")
         
             # Calculate diagonal length for overall movement size
-            print(f"\nTotal movement space (diagonal): {diagonal:.4f} units")
+            print(f"\nTotal movement space (diagonal): {bb_magnitude:.4f} units")
 
             print("\nNormalized dimensions (relative proportions):")
             print(f"X: {self.bb.data[0]:.4f}")
@@ -81,11 +91,4 @@ class JkFeatures:
 
             print()
 
-        if self.is_static:
-            print("Static gesture detected.")
 
-    def is_static_gesture(self, abs_movement, bounding_box):
-        abs_magnitude = math.sqrt(sum(x*x for x in abs_movement.data))
-        bb_magnitude = math.sqrt(sum(x*x for x in bounding_box.data))
-            
-        return abs_magnitude > bb_magnitude
