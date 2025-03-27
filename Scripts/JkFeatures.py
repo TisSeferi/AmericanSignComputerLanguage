@@ -18,13 +18,12 @@ class JkFeatures:
         self.ff_joint_vecs_flat, self.ff_joint_vecs = mathematics.convert_joint_positions_to_distance_vectors(self.first_frame, self.ff_centroid)        
 
         self.pts = mathematics.resample(points=Vector(self.pts), n=blades.resample_cnt)
-                
+        self.path_length = mathematics.path_length(self.pts) 
         
         minimum = Vector(self.pts[0])
         maximum = Vector(self.pts[0])
         
         self.abs = Vector(0.0, m)
-
 
         for ii in range(1, blades.resample_cnt):
             vec = self.pts[ii] - self.pts[ii - 1]
@@ -56,10 +55,9 @@ class JkFeatures:
             print(f"Absolute movement raw values: {[f'{x:.4f}' for x in self.abs.data]}")
         
         bb_raw = (maximum - minimum)
-        abs_magnitude = math.sqrt(sum(x*x for x in self.abs.data))
         bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
 
-        movement_ratio = abs_magnitude / bb_magnitude
+        movement_ratio = self.path_length / bb_magnitude
 
         if movement_ratio > 2.0:
             print(f"This is a dynamic gesture (movement ratio: {movement_ratio:.2f})")
