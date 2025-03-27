@@ -88,7 +88,7 @@ def match_worker(match_queue, recognizer_options, data_queue, output_queue):
                     list(data),
                     result.start_frame_no - current_frame_num,
                     result.end_frame_no - current_frame_num - 1
-                )
+                )                
                 match, recognizer_d = recognizer_options.is_match(
                     trajectory=jk_buffer, gid=result.sample.gesture_id
                 )

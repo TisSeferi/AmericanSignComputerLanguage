@@ -9,6 +9,7 @@ class JkFeatures:
         self.pts = points
         self.vecs = Vector([])
         self.normalized_vecs = Vector([])
+
         m = points[0].size()
         
         # Store information about first frame to support static pose gestures. Calculate first frame position,
@@ -59,10 +60,12 @@ class JkFeatures:
 
         movement_ratio = self.path_length / bb_magnitude
 
-        if movement_ratio > 2.0:
+        if movement_ratio > 1.2:
             print(f"This is a dynamic gesture (movement ratio: {movement_ratio:.2f})")
+            self.is_static = False
         else:
             print(f"This is a static gesture (movement ratio: {movement_ratio:.2f})")
+            self.is_static = True
 
 
         self.abs = self.abs.normalize()
