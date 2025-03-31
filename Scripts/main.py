@@ -17,6 +17,7 @@ from PIL import Image, ImageTk
 import os
 import mediapipe as mp_solutions
 import time
+import math
 
 # Constants
 X = 0
@@ -109,6 +110,8 @@ def static_worker(task_queue, recognizer_options, output_queue):
         best_match = None
         best_distance = float('-inf')
 
+        # Only consider static templates
+        #static_templates = [t for t in recognizer_options.templates if t.features.is_static]
         for template in recognizer_options.templates:
             ff_vec_distance_list, total_distance = mathematics.calculate_joint_angle_disparity(
                 template.features.ff_joint_vecs_flat,
@@ -119,10 +122,15 @@ def static_worker(task_queue, recognizer_options, output_queue):
                 best_match = template
         
         if best_match:
+            bb_raw = (best_match.features.bb)
+            bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
+            movement_ratio = best_match.features.path_length / bb_magnitude
+            
             debug_info = (
                 f"Static Gesture: {best_match.gesture_id}\n"
                 f"Score: {best_distance:.2f}\n"
                 f"Path Length: {best_match.features.path_length:.2f}\n"
+                f"Movement Ratio: {movement_ratio:.2f}\n"
                 f"-------------------"
             )
             output_queue.put(debug_info)

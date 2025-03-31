@@ -60,24 +60,24 @@ class JkFeatures:
         bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
         movement_ratio = self.path_length / bb_magnitude
 
-        print("\n=== Motion Analysis ===")
-        print(f"Path Length: {self.path_length:.4f}")
-        print(f"Bounding Box Magnitude: {bb_magnitude:.4f}")
-        print(f"Movement Ratio: {movement_ratio:.4f}")
+        #print("\n=== Motion Analysis ===")
+        #print(f"Path Length: {self.path_length:.4f}")
+        #print(f"Bounding Box Magnitude: {bb_magnitude:.4f}")
+        #print(f"Movement Ratio: {movement_ratio:.4f}")
         
-        if movement_ratio > 1.2:
-            print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
+        if movement_ratio > 1.3:
+            #print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
             self.is_static = False
         else:
-            print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
+            #print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
             self.is_static = True
 
         self.abs = self.abs.normalize()
         self.bb = bb_raw.normalize()
 
-        print("\n=== Normalized Values ===")
-        print(f"Abs Values: {[f'{x:.4f}' for x in self.abs.data]}")
-        print(f"BB Values: {[f'{x:.4f}' for x in self.bb.data]}")
+        #print("\n=== Normalized Values ===")
+        #print(f"Abs Values: {[f'{x:.4f}' for x in self.abs.data]}")
+        #print(f"BB Values: {[f'{x:.4f}' for x in self.bb.data]}")
 
         if debug_print:
             print("\n")
