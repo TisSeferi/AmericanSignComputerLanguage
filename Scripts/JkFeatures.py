@@ -10,6 +10,7 @@ class JkFeatures:
         self.vecs = Vector([])
         self.normalized_vecs = Vector([])
 
+        #TODO Index out of range error from last time
         m = points[0].size()
         
         # Store information about first frame to support static pose gestures. Calculate first frame position,
@@ -57,20 +58,26 @@ class JkFeatures:
         
         bb_raw = (maximum - minimum)
         bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
-
         movement_ratio = self.path_length / bb_magnitude
 
+        print("\n=== Motion Analysis ===")
+        print(f"Path Length: {self.path_length:.4f}")
+        print(f"Bounding Box Magnitude: {bb_magnitude:.4f}")
+        print(f"Movement Ratio: {movement_ratio:.4f}")
+        
         if movement_ratio > 1.2:
-            print(f"This is a dynamic gesture (movement ratio: {movement_ratio:.2f})")
+            print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
             self.is_static = False
         else:
-            print(f"This is a static gesture (movement ratio: {movement_ratio:.2f})")
+            print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
             self.is_static = True
-
 
         self.abs = self.abs.normalize()
         self.bb = bb_raw.normalize()
 
+        print("\n=== Normalized Values ===")
+        print(f"Abs Values: {[f'{x:.4f}' for x in self.abs.data]}")
+        print(f"BB Values: {[f'{x:.4f}' for x in self.bb.data]}")
 
         if debug_print:
             print("\n")

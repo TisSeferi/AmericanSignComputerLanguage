@@ -68,7 +68,7 @@ class MacheteTemplate:
         self.closedness /= path_length
         f2l_vector = f2l_vector.normalize()
 
-        self.is_static = True if path_length / diag <= 1.2 else False
+        self.is_static = True if path_length / diag < 1.2 else False
 
         self.weightClosedness = (1.0 - f2l_length) / diag
         self.weightF2l = min(1.0, 2.0 * f2l_length / diag)

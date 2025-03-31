@@ -93,7 +93,7 @@ def match_worker(match_queue, recognizer_options, data_queue, output_queue):
                     trajectory=jk_buffer, gid=result.sample.gesture_id
                 )
                 if match:
-                    output_queue.put(f"Gesture: {result.sample.gesture_id} | Score: {recognizer_d:.2f}")
+                    output_queue.put(f"Dynamic Gesture: {result.sample.gesture_id} | Score: {recognizer_d:.2f}")
             finally:
                 data_queue.put(data)
 
@@ -119,8 +119,13 @@ def static_worker(task_queue, recognizer_options, output_queue):
                 best_match = template
         
         if best_match:
-            output_queue.put(f"Gesture: {best_match.gesture_id} | Score: {best_distance:.2f}")
-
+            debug_info = (
+                f"Static Gesture: {best_match.gesture_id}\n"
+                f"Score: {best_distance:.2f}\n"
+                f"Path Length: {best_match.features.path_length:.2f}\n"
+                f"-------------------"
+            )
+            output_queue.put(debug_info)
 
 # GUI Application
 class GestureApp:
