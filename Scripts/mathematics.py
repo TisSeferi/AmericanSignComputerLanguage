@@ -253,6 +253,25 @@ def calculate_centroid(trajectory):
     
     return centroid
 
+# Input frame is a single 21x3 array of joint positions flattened
+def calculate_spatial_bb(frame):
+    # Create a new Vector filled with zeros to store the average position
+    minimum = Vector([float('inf'), float('inf'), float('inf')])
+    maximum = Vector([float('-inf'), float('-inf'), float('-inf')])
+
+    # Calculate how many points we have (each point has x,y,z so divide by 3)
+    num_points = frame.size() // 3 
+    
+    for i in range(num_points):
+        # Get the x,y,z coordinates for each point
+        temp_vec = Vector([frame[i * 3], frame[i * 3 + 1], frame[i * 3 + 2]])
+
+        # Update the minimum and maximum values for each axis    
+        minimum.minimum(temp_vec)
+        maximum.maximum(temp_vec)
+
+    return (maximum - minimum).magnitude()
+
 # Converts from a list of joint coordinates to a list of distance vectors from the centroid
 def convert_joint_positions_to_distance_vectors(joints_xyz, centroid):
     # Create empty lists to store our results

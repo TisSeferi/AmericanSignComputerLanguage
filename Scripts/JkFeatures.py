@@ -21,6 +21,7 @@ class JkFeatures:
 
         self.pts = mathematics.resample(points=Vector(self.pts), n=blades.resample_cnt)
         self.path_length = mathematics.path_length(self.pts) 
+        self.ff_bb_magnitude = mathematics.calculate_spatial_bb(self.first_frame)
         
         minimum = Vector(self.pts[0])
         maximum = Vector(self.pts[0])
@@ -56,20 +57,25 @@ class JkFeatures:
             print("Before normalization:")
             print(f"Absolute movement raw values: {[f'{x:.4f}' for x in self.abs.data]}")
         
+                
+        movement_ratio = self.path_length / self.ff_bb_magnitude
+        
         bb_raw = (maximum - minimum)
         bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
-        movement_ratio = self.path_length / bb_magnitude
-
-        #print("\n=== Motion Analysis ===")
-        #print(f"Path Length: {self.path_length:.4f}")
-        #print(f"Bounding Box Magnitude: {bb_magnitude:.4f}")
-        #print(f"Movement Ratio: {movement_ratio:.4f}")
+        
+        if debug_print:
+            print("\n=== Motion Analysis ===")
+            print(f"Path Length: {self.path_length:.4f}")
+            print(f"FF Bounding Box Magnitude: {self.ff_bb_magnitude:.4f}")
+            print(f"Movement Ratio: {movement_ratio:.4f}")
         
         if movement_ratio > 1.3:
-            #print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
+            if debug_print:
+                print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
             self.is_static = False
         else:
-            #print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
+            if debug_print:
+                print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
             self.is_static = True
 
         self.abs = self.abs.normalize()
@@ -83,8 +89,8 @@ class JkFeatures:
             print("\n")
             print(f"After abs normalization: {[f'{x:.4f}' for x in self.abs.data]}")        
            
-            print("\n=== Bounding Box Analysis ===")
-            print(f"Box dimensions (width, height, depth):")
+            print("\n=== Movement Bounding Box Analysis ===")
+            print(f"Movement box dimensions (width, height, depth):")
             print(f"X (width): {bb_raw.data[0]:.4f} units")
             print(f"Y (height): {bb_raw.data[1]:.4f} units")
             print(f"Z (depth): {bb_raw.data[2]:.4f} units")
