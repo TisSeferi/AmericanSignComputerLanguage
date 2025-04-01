@@ -5,7 +5,7 @@ import math
 
 
 class JkFeatures:
-    def __init__(self, blades=JkBlades, points=None, debug_print=False):
+    def __init__(self, blades=JkBlades, points=None, debug_print=False, is_template=False):
         self.pts = points
         self.vecs = Vector([])
         self.normalized_vecs = Vector([])
@@ -57,26 +57,25 @@ class JkFeatures:
             print("Before normalization:")
             print(f"Absolute movement raw values: {[f'{x:.4f}' for x in self.abs.data]}")
         
-                
-        movement_ratio = self.path_length / self.ff_bb_magnitude
+        if is_template:        
+            movement_ratio = self.path_length / self.ff_bb_magnitude
+            if debug_print:
+                print("\n=== Motion Analysis ===")
+                print(f"Path Length: {self.path_length:.4f}")
+                print(f"FF Bounding Box Magnitude: {self.ff_bb_magnitude:.4f}")
+                print(f"Movement Ratio: {movement_ratio:.4f}")
+               
+            if movement_ratio > 1.3:
+                if debug_print:
+                    print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
+                self.is_static = False
+            else:
+                if debug_print:
+                    print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
+                self.is_static = True
         
         bb_raw = (maximum - minimum)
         bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
-        
-        if debug_print:
-            print("\n=== Motion Analysis ===")
-            print(f"Path Length: {self.path_length:.4f}")
-            print(f"FF Bounding Box Magnitude: {self.ff_bb_magnitude:.4f}")
-            print(f"Movement Ratio: {movement_ratio:.4f}")
-        
-        if movement_ratio > 1.3:
-            if debug_print:
-                print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
-            self.is_static = False
-        else:
-            if debug_print:
-                print(f"Classified as STATIC gesture (movement_ratio: {movement_ratio:.4f} <= 1.2)")
-            self.is_static = True
 
         self.abs = self.abs.normalize()
         self.bb = bb_raw.normalize()

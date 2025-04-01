@@ -111,20 +111,21 @@ def static_worker(task_queue, recognizer_options, output_queue):
         best_distance = float('-inf')
 
         # Only consider static templates
-        #static_templates = [t for t in recognizer_options.templates if t.features.is_static]
-        for template in recognizer_options.templates:
+        static_templates = [t for t in recognizer_options.templates if t.features.is_static]
+        for template in static_templates:
             ff_vec_distance_list, total_distance = mathematics.calculate_joint_angle_disparity(
                 template.features.ff_joint_vecs_flat,
                 point_vecs_flat
             )
-            if total_distance > best_distance:
+            # TODO Determine threshold
+            if total_distance > best_distance and total_distance > 18.9: # 18.9 is a placeholder threshold given by .9 * num of joints
                 best_distance = total_distance
                 best_match = template
-        
+        # TODO Check for consensus over three results
         if best_match:
             bb_raw = (best_match.features.bb)
-            bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
-            movement_ratio = best_match.features.path_length / bb_magnitude
+            # bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
+            movement_ratio = best_match.features.path_length / best_match.features.ff_bb_magnitude
             
             debug_info = (
                 f"Static Gesture: {best_match.gesture_id}\n"
