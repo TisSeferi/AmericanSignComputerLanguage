@@ -99,6 +99,7 @@ def match_worker(match_queue, recognizer_options, data_queue, output_queue):
                 data_queue.put(data)
 
 def static_worker(task_queue, recognizer_options, output_queue):
+    match_history = col.deque(maxlen=3)
     while True:
         task = task_queue.get()
         if task is None:
@@ -122,7 +123,6 @@ def static_worker(task_queue, recognizer_options, output_queue):
                 best_distance = total_distance
                 best_match = template
                                        
-        match_history = col.deque(maxlen=3)
         if best_match:
             match_history.append(best_match.gesture_id)
             movement_ratio = best_match.features.path_length / best_match.features.ff_bb_magnitude
@@ -139,6 +139,7 @@ def static_worker(task_queue, recognizer_options, output_queue):
                     f"-------------------"
                 )
                 output_queue.put(debug_info)
+                match_history.clear()  # Clear history after a match
 
 # GUI Application
 class GestureApp:
