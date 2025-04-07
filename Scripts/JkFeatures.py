@@ -67,7 +67,7 @@ class JkFeatures:
                
             if movement_ratio > 1.3:
                 if debug_print:
-                    print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} > 1.2)")
+                    print(f"Classified as DYNAMIC gesture (movement_ratio: {movement_ratio:.4f} >= 1.2)")
                 self.is_static = False
             else:
                 if debug_print:

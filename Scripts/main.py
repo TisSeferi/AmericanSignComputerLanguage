@@ -117,24 +117,30 @@ def static_worker(task_queue, recognizer_options, output_queue):
                 template.features.ff_joint_vecs_flat,
                 point_vecs_flat
             )
-            # TODO Determine threshold
-            if total_distance > best_distance and total_distance > 18.9: # 18.9 is a placeholder threshold given by .9 * num of joints
+            threshold = 0.9 * NUM_POINTS  # Adjust the multiplier as needed
+            if total_distance > best_distance and total_distance > threshold: 
                 best_distance = total_distance
                 best_match = template
-        # TODO Check for consensus over three results
+                                       
+        match_history = col.deque(maxlen=3)
         if best_match:
-            bb_raw = (best_match.features.bb)
-            # bb_magnitude = math.sqrt(sum(x*x for x in bb_raw.data))
+            match_history.append(best_match.gesture_id)
             movement_ratio = best_match.features.path_length / best_match.features.ff_bb_magnitude
-            
-            debug_info = (
-                f"Static Gesture: {best_match.gesture_id}\n"
-                f"Score: {best_distance:.2f}\n"
-                f"Path Length: {best_match.features.path_length:.2f}\n"
-                f"Movement Ratio: {movement_ratio:.2f}\n"
-                f"-------------------"
-            )
-            output_queue.put(debug_info)
+
+            if best_match:
+                match_history.append(best_match.gesture_id)
+                # First we check if there is exactly 3 results in the history
+                # and if all of them are the same. If so, we have a proper match. (I have not tested this, but it should work)
+                # If not, we just disable it and only check if their is 3 total results and then output the last known result (or first LOL)
+                if len(match_history) == 3 and len(set(match_history)) == 1:
+                    debug_info = (
+                        f"Consensus Gesture: {best_match.gesture_id}\n"
+                        f"Score: {best_distance:.2f}\n"
+                        f"Path Length: {best_match.features.path_length:.2f}\n"
+                        f"Movement Ratio: {movement_ratio:.2f}\n"
+                        f"-------------------"
+                    )
+                    output_queue.put(debug_info)
 
 # GUI Application
 class GestureApp:
