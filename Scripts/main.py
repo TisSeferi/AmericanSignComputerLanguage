@@ -127,20 +127,18 @@ def static_worker(task_queue, recognizer_options, output_queue):
             match_history.append(best_match.gesture_id)
             movement_ratio = best_match.features.path_length / best_match.features.ff_bb_magnitude
 
-            if best_match:
-                match_history.append(best_match.gesture_id)
-                # First we check if there is exactly 3 results in the history
-                # and if all of them are the same. If so, we have a proper match. (I have not tested this, but it should work)
-                # If not, we just disable it and only check if their is 3 total results and then output the last known result (or first LOL)
-                if len(match_history) == 3 and len(set(match_history)) == 1:
-                    debug_info = (
-                        f"Consensus Gesture: {best_match.gesture_id}\n"
-                        f"Score: {best_distance:.2f}\n"
-                        f"Path Length: {best_match.features.path_length:.2f}\n"
-                        f"Movement Ratio: {movement_ratio:.2f}\n"
-                        f"-------------------"
-                    )
-                    output_queue.put(debug_info)
+            # First we check if there is exactly 3 results in the history
+            # and if all of them are the same. If so, we have a proper match. (I have not tested this, but it should work)
+            # If not, we just disable it and only check if their is 3 total results and then output the last known result (or first LOL)
+            if len(match_history) == 3 and len(set(match_history)) == 1:
+                debug_info = (
+                    f"Consensus Gesture: {best_match.gesture_id}\n"
+                    f"Score: {best_distance:.2f}\n"
+                    f"Path Length: {best_match.features.path_length:.2f}\n"
+                    f"Movement Ratio: {movement_ratio:.2f}\n"
+                    f"-------------------"
+                )
+                output_queue.put(debug_info)
 
 # GUI Application
 class GestureApp:
