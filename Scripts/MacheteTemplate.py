@@ -63,9 +63,13 @@ class MacheteTemplate:
 
         f2l_vector = self.points[len(self.points) - 1] - self.points[0]
         f2l_length = f2l_vector.magnitude()
+        path_length = mathematics.path_length(resampled)
+        ff_bb_magnitude = mathematics.calculate_spatial_bb(resampled[0])
         self.closedness = f2l_length
-        self.closedness /= mathematics.path_length(resampled)
+        self.closedness /= path_length
         f2l_vector = f2l_vector.normalize()
+
+        self.is_static = True if path_length / ff_bb_magnitude < 1.3 else False
 
         self.weightClosedness = (1.0 - f2l_length) / diag
         self.weightF2l = min(1.0, 2.0 * f2l_length / diag)

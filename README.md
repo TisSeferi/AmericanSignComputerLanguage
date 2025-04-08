@@ -1,10 +1,10 @@
 # American Sign Computer Language (ASCL) Recognizer
 
-A real-time American Sign Language recognition system that combines advanced gesture recognition algorithms with computer vision technologies.
+An interactive tool for creating and recognizing custom hand gestures, supporting both dynamic (movement-based) and static poses.
 
 ## Overview
 
-This project implements a gesture recognition system for American Sign Language using:
+This project implements a versatile hand gesture recognition system using:
 - Jackknife.py - Time series pattern recognition algorithm
 - Machete.py - A segmentation technique 
 - MediaPipe - Hand tracking and landmark detection
@@ -12,20 +12,12 @@ This project implements a gesture recognition system for American Sign Language 
 
 ## Key Features
 
-- Real-time ASL gesture recognition
+- Real-time gesture recognition for both static poses and dynamic movements
+- Custom gesture template creation and management
 - Multi-threaded processing architecture  
-- 3D hand landmark tracking
-- Template recording and management
+- 3D hand landmark tracking with high precision
 - Configurable gesture matching parameters
-
-## Supported ASL Gestures
-
-Currently recognizes the following ASL signs:
-- "Forget" 
-- "Thank you"
-- "Like"
-- "No"
-- "Need"
+- Support for both quick poses and complex movement sequences
 
 ## Getting Started
 
@@ -49,13 +41,15 @@ python Scripts/TemplateCrafter.py
 ### Real-time Recognition:
 
 - Position your hand in front of the camera
-- Allow ~3 seconds for the gesture buffer to fill
-- Perform ASL gestures naturally
+- For static gestures: Hold the pose for recognition
+- For dynamic gestures: Allow ~3 seconds for the gesture buffer to fill
+- Perform gestures naturally
 - Recognition results appear in the console
 
 ### Template Creation:
 
 - Use TemplateCrafter.py to record new gestures
+- Choose between static pose or dynamic movement recording
 - Review recordings with frame-by-frame playback
 - Save templates for recognition training
 
@@ -70,7 +64,7 @@ python Scripts/TemplateCrafter.py
 
 Currently in active development with focus on:
 
-- GUI 2.0 implementation
+- GUI 3.0 implementation
 - Expanded gesture recognition set
 - Performance optimization
 - Template management improvements
@@ -82,6 +76,7 @@ See checklist.md for detailed development status.
 The system uses:
 
 - Dynamic Time Warping (DTW) for gesture matching
+- Position-based matching for static poses
 - MediaPipe hand landmark detection
 - Multi-threaded gesture processing pipeline
 - Rate-limited recognition output
@@ -96,13 +91,12 @@ The system uses:
 
 ## Known Limitations
 
-- Template recording requires manual frame selection
-- Recognition requires consistent lighting conditions
+- Template recording requires separate window to main application
+- Recognition requires consistent lighting/quality conditions
 - Limited to single-hand gestures currently
 
 ## Future Developments
 
 - Two-handed gesture support
 - Improved template management system
-- Automated gesture segmentation
-- Extended ASL vocabulary support
+- Improved static/dynamic gesture discrimination

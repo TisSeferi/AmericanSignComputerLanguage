@@ -86,5 +86,7 @@ class Machete:
         vec = vec / segment_length
 
         for ii in range(0, len(self.templates)):
+            if self.templates[ii].is_static:
+                continue
             self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)
             results.append(self.templates[ii].result)

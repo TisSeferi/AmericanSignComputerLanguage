@@ -6,7 +6,11 @@ class JKConnector:
         buffer = []
 
         for ii in range(start_frame_no, end_frame_no + 1):
-            v = video[ii]
+            try:
+                v = video[ii]
+            except IndexError:
+                # Skip over frames that are out of bounds.
+                continue
 
             JKVectorData = []
 

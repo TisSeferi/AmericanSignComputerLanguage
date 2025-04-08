@@ -19,7 +19,9 @@ class JkTemplate:
         self.cf = 1.0
 
         self.rejection_threshold = float('inf')
-        self.features = JkFeatures(blades, sample, debug_print=True)
+        # TODO Use this print to help figure out threshold for static/dynamic
+        # print(gid)
+        self.features = JkFeatures(blades, sample, debug_print=True, is_template=True)
 
         vecs = self.features.vecs
         component_cnt = vecs[0].size()
