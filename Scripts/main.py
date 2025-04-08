@@ -135,7 +135,7 @@ def static_worker(task_queue, recognizer_options, output_queue):
                 #    f"Movement Ratio: {movement_ratio:.2f}\n"
                 #    f"-------------------"
                 #)
-                output_queue.put(f"Dynamic Gesture: {best_match.sample.gesture_id} | Score: {best_distance:.2f}")
+                output_queue.put(f"Static Gesture: {best_match.sample.gesture_id} | Score: {best_distance:.2f}")
                 match_history.clear()  # Clear history after a match
 
 # GUI Application
