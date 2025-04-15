@@ -18,6 +18,7 @@ import os
 import mediapipe as mp_solutions
 import time
 import math
+import random
 
 # Constants
 X = 0
@@ -142,7 +143,7 @@ def static_worker(task_queue, recognizer_options, output_queue):
 class GestureApp:
     def __init__(self, root):
         self.root = root
-        self.last_log_time = 0  # Add this line
+        self.last_log_time = 0
         self.root.title("Gesture Recognition GUI")
 
         # Canvas for video display
@@ -157,6 +158,10 @@ class GestureApp:
         # Add a clear button to your GUI:
         self.clear_button = tk.Button(root, text="Clear Console", command=self.clear_console)
         self.clear_button.pack()
+
+        # Add a textbox for displaying the template name
+        self.template_display = tk.Text(root, height=1, font=('Arial', 16, 'bold'), state='disabled')
+        self.template_display.pack()
 
         # Initialize video capture
         self.cap = cv2.VideoCapture(0)
@@ -176,11 +181,11 @@ class GestureApp:
 
         # Load templates and initialize workers
         self.machete = Machete(device_type=None, cr_options=ContinuousResultOptions(), templates=assemble_templates())
+        self.templates = [t[0] for t in assemble_templates()]
+        self.current_template = None
+
         self.blades = JkBlades()
         self.blades.set_ip_defaults()
-        #self.blades.lower_bound = False
-        #self.blades.cf_abs_distance = False
-        #self.blades.cf_bb_widths = False
 
         if os.path.exists("recognizer.pkl"):
             with open("recognizer.pkl", 'rb') as f:
@@ -205,6 +210,9 @@ class GestureApp:
         self.current_frame_num = 0
         self.update_frame()
         self.check_output_queue()
+
+        self.root.bind("<space>", self.change_template)
+        self.change_template()
 
     def update_frame(self):
         """Update video frame in GUI."""
@@ -249,6 +257,15 @@ class GestureApp:
         self.console.config(state='normal')
         self.console.delete(1.0, tk.END)
         self.console.config(state='disabled')
+
+    def change_template(self, event=None):
+        """Change the displayed template to a random one."""
+        if self.templates:
+            self.current_template = random.choice(self.templates)
+            self.template_display.config(state='normal')
+            self.template_display.delete(1.0, tk.END)
+            self.template_display.insert(tk.END, f"Do This: {self.current_template}")
+            self.template_display.config(state='disabled')
 
     def close(self):
         """Clean up resources."""
