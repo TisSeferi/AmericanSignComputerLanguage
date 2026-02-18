@@ -1,12 +1,10 @@
-import math
-
-from Vector import Vector
-from MacheteTemplate import MacheteTemplate
-from MacheteTrigger import MacheteTrigger
-from CircularBuffer import CircularBuffer
-from ContinuousResult import ContinuousResult
-from MacheteSample import Sample
 import numpy as np
+from .MacheteTemplate import MacheteTemplate
+from .MacheteTrigger import MacheteTrigger
+from .CircularBuffer import CircularBuffer
+from .ContinuousResult import ContinuousResult
+from .MacheteSample import Sample
+
 
 class Machete:
     def __init__(self, device_type, cr_options, templates):
@@ -17,7 +15,7 @@ class Machete:
         self.training_set = []
         self.last_frame_no = -1
         self.device_fps = -1
-        
+
         for t in templates:
             self.add_array_sample(t)
 
@@ -41,13 +39,13 @@ class Machete:
         if size > self.buffer.size():
             self.buffer.resize(size)
 
-        template = MacheteTemplate(sample=sample, device_id=self.device_type, cr_options=self.cr_options, filtered=filtered)
+        template = MacheteTemplate(sample=sample, device_id=self.device_type, cr_options=self.cr_options)
         self.templates.append(template)
         self.training_set.append(sample)
         self.reset()
-    
+
     def reset(self):
-        for ii in range(0, len(self.templates)):
+        for ii in range(len(self.templates)):
             self.templates[ii].reset()
         self.buffer.clear()
 
@@ -72,8 +70,8 @@ class Machete:
             self.buffer.insert(pt)
             self.last_frame_no += 1
 
-        vec = Vector(pt - self.last_pt)
-        segment_length = vec.magnitude()
+        delta = pt - self.last_pt
+        segment_length = float(np.linalg.norm(delta))
 
         if self.device_type == 'MOUSE' and segment_length < 10.0:
             return
@@ -83,10 +81,10 @@ class Machete:
         if segment_length <= 1e-10:
             return
 
-        vec = vec / segment_length
+        nvec = delta / segment_length
 
-        for ii in range(0, len(self.templates)):
+        for ii in range(len(self.templates)):
             if self.templates[ii].is_static:
                 continue
-            self.templates[ii].update(self.buffer, pt, vec, frame_no, segment_length)
+            self.templates[ii].update(self.buffer, pt, nvec, frame_no, segment_length)
             results.append(self.templates[ii].result)
