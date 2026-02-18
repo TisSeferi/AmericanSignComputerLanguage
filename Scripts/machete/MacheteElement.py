@@ -1,11 +1,8 @@
 import math
 
 
-#Lets double check this constructor because I used a mix of stackoverflow and google so I'm not sure it's right?
 class MacheteElement:
     def __init__(self, column, start_angle_degrees):
-            
-    #This is the constructor that is called when the column is updated
         self.column = column
         self.running_score = float('inf')
         self.total = 1e-10
@@ -17,7 +14,6 @@ class MacheteElement:
 
             self.running_score = 0.0
             self.total = 0.0
-        
 
     def get_normalized_warping_path_cost(self):
         if self.column == 0:
@@ -31,6 +27,3 @@ class MacheteElement:
 
         self.running_score = extend_this.running_score + cost
         self.total = extend_this.total + length
-
-#element = MacheteElement(0, 65.0)
-#print(element.get_normalized_warping_path_cost())

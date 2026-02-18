@@ -1,14 +1,19 @@
+from enum import IntEnum
+
+
 class ContinuousResultOptions:
     def __init__(self):
         self.latency_frame_count = 0
         self.individual_boundary = False
         self.abandon = False
 
-class ResultState:
+
+class ResultState(IntEnum):
     WAIT_FOR_START = 0
     LOOKING_FOR_MINIMUM = 1
     TRIGGER = 2
     WAIT_FOR_END = 3
+
 
 class ContinuousResult:
     def __init__(self, options, gid, sample):
@@ -21,19 +26,19 @@ class ContinuousResult:
 
     def triggered(self):
         return self.state == ResultState.TRIGGER
-    
+
     def set_wait_for_start(self):
         self.state = ResultState.WAIT_FOR_START
         self.minimum = float('inf')
         self.score = self.minimum
         self.start_frame_no = -1
         self.end_frame_no = -1
-    
+
     def reset(self):
         self.set_wait_for_start()
-    
+
     def update(self, score, threshold, start_frame_no, end_frame_no, current_frame_no):
-        
+
         if current_frame_no == -2:
             current_frame_no = end_frame_no
 
@@ -81,7 +86,7 @@ class ContinuousResult:
             return "wait for end"
         else:
             return "impossible ResultState case"
-    
+
     @staticmethod
     def select_result(results, cancel_with_something):
         triggered = []
@@ -92,13 +97,12 @@ class ContinuousResult:
 
             if not result.triggered():
                 continue
-            
+
             triggered.append(result)
-            # print(result)
 
         if len(triggered) == 0:
             return None
-        
+
         for ii in range(0, len(triggered)):
 
             for jj in range(0, len(results)):
@@ -116,5 +120,5 @@ class ContinuousResult:
 
         if len(remaining) == 0:
             return None
-        
+
         return remaining[0]

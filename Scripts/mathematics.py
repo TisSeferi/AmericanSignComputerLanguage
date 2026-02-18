@@ -1,168 +1,172 @@
 import random as r
-from Vector import Vector 
 import numpy as np
 import math
 
-def flatten(negative):
-    developed = []
-    for index, frame in enumerate(negative):
-        developed.append(Vector(frame.tolist()))
-    return developed
+
+def flatten(arr):
+    """Convert (n, d) ndarray to list of 1D row arrays."""
+    return list(arr)
 
 
-def z_normalize(points):
-    # print("math 29")
-    # print(points)
-    n = points.size()
-    m = points[0].size()
-
-    mean = Vector(0.0, m)
-    variance = Vector(0.0, m)
-
-    for ii in range(n):
-        mean += points[ii]
-
-    mean = mean / (n)
-
-    for ii in range(n):
-        for jj in range(m):
-            diff = points[ii][jj] - mean[jj]
-            variance[jj] += diff ** 2
-
-    variance = variance / (n-1)
-
-    for ii in range(m):
-        variance[ii] = variance[ii] ** .5
-
-    for ii in range(n):
-        points[ii] = (points[ii]-mean) / (variance)
-
-    return points
+def z_normalize(pts):
+    """Z-normalize a 2D ndarray column-wise (axis=0)."""
+    std = pts.std(0, ddof=1)
+    std = np.where(std < 1e-8, 1.0, std)
+    return (pts - pts.mean(0)) / std
 
 
-def path_length(points):
-    ret = 0.0
-    pointssize = points.size() if isinstance(points, Vector) else len(points)
-    for ii in range(1, pointssize):
-        ret += points[ii].l2norm(points[ii - 1])
-
-    return ret
+def path_length(pts):
+    """Total Euclidean path length of a (n, d) ndarray."""
+    return float(np.sum(np.linalg.norm(np.diff(pts, axis=0), axis=1)))
 
 
-def resample(points, n=8, variance=None):
-    path_distance = path_length(points)
-    intervals = Vector(n - 1)
-
-    interval = None
-    ii = None
+def resample(pts, n=8, variance=None):
+    """Resample pts (n_frames, d) ndarray to exactly n evenly-spaced points."""
+    path_dist = path_length(pts)
 
     if not variance:
-        intervals.set_all_elements_to(1.0 / (n - 1))
+        intervals = np.ones(n - 1) / (n - 1)
     else:
-        for ii in range(n - 1):
-            b = (12 * variance) ** .5
-            rr = r.random()
-            intervals.data[ii] = 1.0 + rr * b
+        b = (12 * variance) ** 0.5
+        intervals = 1.0 + np.array([r.random() for _ in range(n - 1)]) * b
+        intervals = intervals / intervals.sum()
 
-        intervals = intervals / (intervals.sum())
+    assert abs(intervals.sum() - 1.0) < 1e-4
 
-    assert abs(intervals.sum() - 1 < .00001)
-
-    remaining_distance = path_distance * intervals[0]
-    prev = points[0]
-    ret = Vector([Vector(points[0])])
+    remaining_distance = path_dist * intervals[0]
+    prev = pts[0].copy()
+    result = [pts[0].copy()]
     ii = 1
 
-    while ii < points.size():        
-        distance = points[ii].l2norm(prev)
+    while ii < len(pts):
+        distance = float(np.linalg.norm(pts[ii] - prev))
 
         if distance < remaining_distance:
-            prev = points[ii]
+            prev = pts[ii]
             remaining_distance -= distance
             ii += 1
             continue
-        ratio = remaining_distance / distance
 
+        ratio = remaining_distance / distance if distance > 0 else 1.0
         if ratio > 1.0 or math.isnan(ratio):
             ratio = 1.0
 
-        ret.append(
-            Vector.interpolate(
-                prev, points[ii], ratio
-            )
-        )
+        new_pt = prev + ratio * (pts[ii] - prev)
+        result.append(new_pt)
+
+        if len(result) == n:
+            return np.array(result)
+
+        prev = result[-1]
+        remaining_distance = path_dist * intervals[len(result) - 1]
+
+    while len(result) < n:
+        result.append(pts[ii - 1].copy())
+
+    assert len(result) == n
+    return np.array(result)
 
 
-        if ret.size() == n:
-            return ret
+def gpsr(pts, n, variance, remove_cnt):
+    """Generate a synthetic trajectory via GPSR.
 
-        prev = ret[ret.size() - 1]
+    Returns (n, d) ndarray of direction vectors: a zero row followed by
+    n-1 normalized consecutive differences.
+    """
+    resampled = resample(pts, n + remove_cnt, variance)
 
-        remaining_distance = path_distance * intervals[(ret.size() - 1)]
-
-    while ret.size() < n:
-        ret.append(points[ii - 1])
-    #print ("Resampled Length assertion Check:" +  str(ret.size()) + " " + str(n) + " " + str(points.size()) + " " + str(ii)) 
-
-    assert ret.size() == n
-    return ret
-
-def gpsr(points, n, variance, remove_cnt):
-    ret = Vector([])
-    resampled = resample(points, n + remove_cnt, variance)
-
+    idx_list = list(range(len(resampled)))
     for ii in range(remove_cnt):
-        remove_idx = r.random() * 65535
-        remove_idx = math.floor(remove_idx % math.floor(n + remove_cnt - ii))
+        remove_idx = int(r.random() * 65535) % (n + remove_cnt - ii)
+        idx_list.pop(remove_idx)
+    resampled = resampled[idx_list]  # (n, d)
 
-        resampled.pop(remove_idx)
+    d = resampled.shape[1]
+    deltas = np.diff(resampled, axis=0)  # (n-1, d)
+    norms = np.linalg.norm(deltas, axis=1, keepdims=True)
+    norms = np.where(norms < 1e-8, 1.0, norms)
+    normalized = deltas / norms  # (n-1, d)
+    return np.vstack([np.zeros((1, d)), normalized])  # (n, d)
 
-    m = resampled[0].size()
-    ret.append(Vector(0.0, m))
 
-    for ii in range(resampled.size()):
-        delta = resampled[ii] - resampled[ii - 1]
-        ret.append(delta.normalize())
+def bounding_box(pts):
+    """Returns (min_point, max_point) as 1D ndarrays over axis=0."""
+    return pts.min(0), pts.max(0)
 
-    return ret
 
-def bounding_box(trajectory):
-    min_point = trajectory[0].clone()
-    max_point = trajectory[0].clone()
+def vectorize(pts, normalize=True):
+    """Compute direction vectors from consecutive point differences.
 
-    for ii in range(1, len(trajectory)):
-        min_point.minimum(trajectory[ii])
-        max_point.maximum(trajectory[ii])
+    pts: (n, d) ndarray
+    Returns: (n-1, d) ndarray (normalized rows if normalize=True)
+    """
+    vecs = np.diff(pts, axis=0)  # (n-1, d)
+    if normalize:
+        norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+        norms = np.where(norms < 1e-8, 1.0, norms)
+        vecs = vecs / norms
+    return vecs
 
-    return min_point, max_point
+
+def calculate_centroid(frame):
+    """Mean 3D position from flattened (63,) frame array. Returns (3,) ndarray."""
+    return frame.reshape(-1, 3).mean(0)
+
+
+def calculate_spatial_bb(frame):
+    """Diagonal length of 3D bounding box from flattened (63,) frame array."""
+    pts = frame.reshape(-1, 3)
+    return float(np.linalg.norm(pts.max(0) - pts.min(0)))
+
+
+def convert_joint_positions_to_distance_vectors(joints_xyz, centroid):
+    """Convert flattened (63,) joint positions to normalized direction vectors from centroid.
+
+    Returns: (flat_ndarray (63,), 2D_ndarray (21, 3))
+    """
+    pts = joints_xyz.reshape(-1, 3) - centroid  # (21, 3)
+    norms = np.linalg.norm(pts, axis=1, keepdims=True)
+    norms = np.where(norms < 1e-8, 1.0, norms)
+    normalized = pts / norms  # (21, 3)
+    return normalized.flatten(), normalized  # (63,), (21, 3)
+
+
+def calculate_joint_angle_disparity(a, b):
+    """Per-joint dot products and total similarity between two flat (63,) direction arrays.
+
+    Returns: (list of 21 per-joint dot products, total sum as float)
+    """
+    dots = np.sum(a.reshape(-1, 3) * b.reshape(-1, 3), axis=1)  # (21,)
+    return dots.tolist(), float(dots.sum())
+
 
 def douglas_peucker_r_density(points, splits, start, end, threshold):
-    
-    if (start + 1 > end):
+    """Recursive density-based Douglas-Peucker. points is (n, d) ndarray."""
+    if start + 1 > end:
         return
-    
+
     AB = points[end] - points[start]
-    denom = AB.dot(AB)
+    denom = float(np.dot(AB, AB))
 
     largest = float('-inf')
     selected = -1
 
-    for ii in range (start + 1, end):
+    for ii in range(start + 1, end):
         AC = points[ii] - points[start]
-        numer = AC.dot(AB)
-        d2 = AC.dot(AC) - numer * numer / denom
-
+        numer = float(np.dot(AC, AB))
         if denom == 0.0:
-            d2 = AC.magnitude()
+            d2 = float(np.linalg.norm(AC))
+        else:
+            d2 = float(np.dot(AC, AC)) - numer * numer / denom
 
         v1 = points[ii] - points[start]
         v2 = points[end] - points[ii]
 
-        l1 = v1.magnitude()
-        l2 = v2.magnitude()
+        l1 = float(np.linalg.norm(v1))
+        l2 = float(np.linalg.norm(v2))
 
-        dot = v1.dot(v2)
-        dot /= (l1 * l2 > 0) if (l1 * l2) else 1.0
+        denom_angle = l1 * l2 if l1 * l2 > 0 else 1.0
+        dot = float(np.dot(v1, v2)) / denom_angle
         dot = max(-1.0, min(1.0, dot))
         angle = math.acos(dot)
         d2 *= angle / math.pi
@@ -173,7 +177,7 @@ def douglas_peucker_r_density(points, splits, start, end, threshold):
 
     if selected == -1:
         return
-    
+
     largest = max(0.0, largest)
     largest = math.sqrt(largest)
 
@@ -185,6 +189,7 @@ def douglas_peucker_r_density(points, splits, start, end, threshold):
 
     splits[selected][1] = largest
 
+
 def douglas_peucker_density(points, splits, minimum_threshold):
     splits.clear()
 
@@ -192,20 +197,20 @@ def douglas_peucker_density(points, splits, minimum_threshold):
         splits.append([ii, 0])
 
     splits[0][1] = float('inf')
-    splits[len(splits) - 1][1] = float('inf')
-    
+    splits[-1][1] = float('inf')
+
     douglas_peucker_r_density(points, splits, 0, len(points) - 1, minimum_threshold)
     splits.sort(key=lambda x: x[1], reverse=True)
 
-@staticmethod
-def douglas_peucker_density_trajectory(trajectory, minimum_threshold):
-    splits = []
-    indicies = []
-    output = []
 
-    splits.clear()
-    output.clear()
-    indicies.clear()
+def douglas_peucker_density_trajectory(trajectory, minimum_threshold):
+    """Run DP density simplification on trajectory (n, d) ndarray.
+
+    Returns (ret, output) where output is a list of 1D ndarray rows.
+    """
+    splits = []
+    indices = []
+    output = []
 
     douglas_peucker_density(trajectory, splits, minimum_threshold)
 
@@ -215,123 +220,11 @@ def douglas_peucker_density_trajectory(trajectory, minimum_threshold):
         idx, score = split
         if score < minimum_threshold:
             continue
-        indicies.append(idx)
+        indices.append(idx)
 
-    indicies.sort()
+    indices.sort()
 
-    for idx in indicies:
+    for idx in indices:
         output.append(trajectory[idx])
 
     return ret, output
-
-@staticmethod
-def vectorize(trajectory, normalize=True):
-    vectors = []
-    for ii in range(1, len(trajectory)):
-        vec = trajectory[ii] - trajectory[ii - 1]
-        if normalize:
-            vec = vec.normalize()
-        vectors.append(vec)
-    return vectors
-
-def calculate_centroid(trajectory):
-    # Create a new Vector filled with zeros to store the average position
-    centroid = Vector([0.0, 0.0, 0.0])
-    
-    # Calculate how many points we have (each point has x,y,z so divide by 3)
-    num_points = trajectory.size() // 3 
-    
-    for i in range(num_points):
-        # Get the x,y,z coordinates for each point
-        x, y, z = trajectory[i * 3], trajectory[i * 3 + 1], trajectory[i * 3 + 2]
-
-        # Add each point's position to our running total
-        centroid += Vector([x, y, z])
-    
-    # Divide by 21 to get the average position (center point)
-    centroid = centroid / num_points
-    
-    return centroid
-
-# Input frame is a single 21x3 array of joint positions flattened
-def calculate_spatial_bb(frame):
-    # Create a new Vector filled with zeros to store the average position
-    minimum = Vector([float('inf'), float('inf'), float('inf')])
-    maximum = Vector([float('-inf'), float('-inf'), float('-inf')])
-
-    # Calculate how many points we have (each point has x,y,z so divide by 3)
-    num_points = frame.size() // 3 
-    
-    for i in range(num_points):
-        # Get the x,y,z coordinates for each point
-        temp_vec = Vector([frame[i * 3], frame[i * 3 + 1], frame[i * 3 + 2]])
-
-        # Update the minimum and maximum values for each axis    
-        minimum.minimum(temp_vec)
-        maximum.maximum(temp_vec)
-
-    return (maximum - minimum).magnitude()
-
-# Converts from a list of joint coordinates to a list of distance vectors from the centroid
-def convert_joint_positions_to_distance_vectors(joints_xyz, centroid):
-    # Create empty lists to store our results
-    direction_vector_joints = Vector([])       # Will store 3D vectors
-    flat_direction_vector_joints = Vector([])  # Will store flattened coordinates
-    
-    # Calculate number of points (each point has x,y,z coordinates)
-    num_points = joints_xyz.size() // 3
-
-    for i in range(num_points):
-
-        x, y, z = joints_xyz[i * 3], joints_xyz[i * 3 + 1], joints_xyz[i * 3 + 2]        
-        # Calculate the position of the joint relative to the centroid
-        joint_position = Vector([x, y, z]) - centroid
-
-        # Make the vector length 1.0 (normalize it)
-        joint_position = joint_position.normalize()
-        
-        # Store the 3D vector
-        direction_vector_joints.append(joint_position)
-        
-        # Append the distance vector to the list as we are dealing with flat vectors. May not be used.
-        flat_direction_vector_joints.append(joint_position[0])
-        flat_direction_vector_joints.append(joint_position[1])
-        flat_direction_vector_joints.append(joint_position[2])
-
-
-    return flat_direction_vector_joints, direction_vector_joints
-
-
-# Calculate per joint angle between two lists(vectors) of direction vectors, and the summed angle for the entire pose
-# Works with FLAT vectors of normalized direction vectors with three coords per joint.
-def calculate_joint_angle_disparity(joint_vecs_a, joint_vecs_b):
-    # Create lists to store our results
-    joint_angles = []    # Will store angles between each pair of joints
-    total_angle = 0.0   # Will store the sum of all angles
-    
-    # Make sure we have the same number of points in both sets
-    assert joint_vecs_a.size() == joint_vecs_b.size(), "Input vectors must have the same length"
-
-    # Calculate how many points we have
-    num_points = joint_vecs_a.size() // 3
-
-    for i in range(num_points):
-        # Get the vectors for matching joints from both sets
-        vec_a = Vector([joint_vecs_a[i * 3], joint_vecs_a[i * 3 + 1], joint_vecs_a[i * 3 + 2]])
-        vec_b = Vector([joint_vecs_b[i * 3], joint_vecs_b[i * 3 + 1], joint_vecs_b[i * 3 + 2]])
-
-        # Make sure vectors are normalized (length = 1)
-        assert abs(vec_a.magnitude() - 1.0) < 0.01, "Input vector a must be normalized" 
-        assert abs(vec_b.magnitude() - 1.0) < 0.01, "Input vector b must be normalized"
-
-        # Calculate how similar the vectors are using dot product
-        # 1.0 means identical direction, -1.0 means opposite direction
-        dot_product = vec_a.dot(vec_b)                
-
-        # Store the similarity score for this joint
-        joint_angles.append(dot_product)
-        
-        # Add to our running total
-        total_angle = total_angle + dot_product
-
-    return joint_angles, total_angle
